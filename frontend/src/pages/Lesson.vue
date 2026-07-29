@@ -17,11 +17,14 @@
 			</div>
 		</header>
 		<div
-			:class="
+			ref="learningGrid"
+			:class="[
 				embedded
 					? 'grid grid-cols-1 h-full'
-					: 'grid md:grid-cols-[70%,30%] h-[94vh]'
-			"
+					: 'grid md:grid-cols-[70%,30%] h-[94vh]',
+				{ 'coding-lab-learning-grid': activeLab },
+			]"
+			:style="learningGridStyle"
 		>
 			<div v-if="lesson.data.no_preview" class="border-e">
 				<div class="shadow rounded-md w-3/4 mt-10 mx-auto text-center p-4">
@@ -66,7 +69,7 @@
 				ref="lessonContainer"
 				class="bg-surface-base"
 				:class="{
-					'overflow-y-auto': zenModeEnabled,
+					'overflow-y-auto': zenModeEnabled || activeLab,
 				}"
 			>
 				<div
@@ -290,7 +293,28 @@
 					</div>
 				</div>
 			</div>
-			<div v-if="!embedded" class="sticky top-10 h-[94vh]">
+			<div
+				v-if="activeLab"
+				class="coding-lab-workspace-divider"
+				role="separator"
+				aria-orientation="vertical"
+				tabindex="0"
+				:aria-valuemin="35"
+				:aria-valuemax="65"
+				:aria-valuenow="lessonShare"
+				:aria-label="__('Resize lesson and lab panes')"
+				@pointerdown="startWorkspaceResize"
+				@keydown="resizeWorkspaceByKeyboard"
+			/>
+			<CodingLabWorkspace
+				v-if="activeLab"
+				:labs="codingLabs"
+				:activeLab="activeLab"
+				:context="codingLabContext"
+				@close="closeCodingLab"
+				@switch="activeLabId = $event"
+			/>
+			<div v-if="!embedded && !activeLab" class="sticky top-10 h-[94vh]">
 				<StudentLessonSidebar
 					:courseName="courseName"
 					:courseTitle="lesson.data.course_title"
@@ -367,8 +391,18 @@ import StudentLessonSidebar from '@/components/StudentLessonSidebar.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import Notes from '@/components/Notes/Notes.vue'
 import InlineLessonMenu from '@/components/Notes/InlineLessonMenu.vue'
+import CodingLabWorkspace from '@/components/CodingLabWorkspace.vue'
 import { getLmsRoute } from '@/utils/basePath'
 import { useStudentView } from '@/composables/useStudentView'
+import {
+	extractCodingLabs,
+	normalizeCodingLab,
+} from '@/utils/codingLab/schema'
+import {
+	clampLessonShare,
+	lessonShareFromPointer,
+	resizeLessonShare,
+} from '@/utils/codingLab/workspace'
 
 const user = inject('$user')
 const isStudentView = useStudentView()
@@ -380,6 +414,7 @@ const editor = ref(null)
 const instructorEditor = ref(null)
 const lessonProgress = ref(0)
 const lessonContainer = ref(null)
+const learningGrid = ref(null)
 const zenModeEnabled = ref(false)
 const showStatsDialog = ref(false)
 const hasQuiz = ref(false)
@@ -392,9 +427,31 @@ const showInlineMenu = ref(false)
 const currentTab = ref(null)
 const completedLesson = ref(null)
 const settingsStore = useSettings()
+const codingLabs = ref([])
+const activeLabId = ref(null)
+const lessonShare = ref(readLessonShare())
+let workspaceResizeActive = false
 let timerInterval = null
 
 const tabs = ref([])
+
+const activeLab = computed(() =>
+	codingLabs.value.find((lab) => lab.block_id === activeLabId.value)
+)
+const codingLabContext = computed(() => ({
+	user: user.data?.name || user.data?.email || 'guest',
+	course: props.courseName,
+	chapter: props.chapterNumber,
+	lesson: props.lessonNumber,
+	authorPreview: Boolean(props.embedded || isStudentView.value),
+}))
+const learningGridStyle = computed(() =>
+	activeLab.value
+		? {
+				'--coding-lab-lesson-share': `${lessonShare.value}%`,
+			}
+		: undefined
+)
 
 const props = defineProps({
 	courseName: {
@@ -441,6 +498,7 @@ const isCourseAdmin = () =>
 	Boolean(user.data?.is_moderator || user.data?.is_instructor)
 
 onMounted(() => {
+	window.addEventListener('lms:coding-lab-open', openCodingLab)
 	startTimer()
 	// Keep the app sidebar open for admins/instructors so they can navigate
 	// while reviewing; only collapse it for students to maximise reading space.
@@ -470,6 +528,8 @@ const attachFullscreenEvent = () => {
 }
 
 onBeforeUnmount(() => {
+	window.removeEventListener('lms:coding-lab-open', openCodingLab)
+	stopWorkspaceResize()
 	document.removeEventListener('fullscreenchange', attachFullscreenEvent)
 	if (!props.embedded && collapsedByLesson)
 		sidebarStore.isSidebarCollapsed = false
@@ -506,6 +566,12 @@ const setupLesson = (data) => {
 		})
 	}
 	lessonProgress.value = data.membership?.progress
+	codingLabs.value = extractCodingLabs(data.content)
+	if (
+		activeLabId.value &&
+		!codingLabs.value.some((lab) => lab.block_id === activeLabId.value)
+	)
+		activeLabId.value = null
 	if (data.content) editor.value = renderEditor('editor', data.content)
 	if (
 		data.instructor_content &&
@@ -538,7 +604,9 @@ const renderEditor = (holder, content) => {
 		document.getElementById(holder).innerHTML = ''
 	return new EditorJS({
 		holder: holder,
-		tools: getEditorTools(false, {}, { studentView: isStudentView.value }),
+		tools: getEditorTools(false, {}, {
+			studentView: isStudentView.value || props.embedded,
+		}),
 		data: sanitizeEditorJs(JSON.parse(content)),
 		readOnly: true,
 		defaultBlock: 'embed',
@@ -689,6 +757,8 @@ watch(
 )
 
 const resetLessonState = (newChapterNumber, newLessonNumber) => {
+	activeLabId.value = null
+	codingLabs.value = []
 	editor.value = null
 	instructorEditor.value = null
 	allowDiscussions.value = false
@@ -700,6 +770,83 @@ const resetLessonState = (newChapterNumber, newLessonNumber) => {
 	fallbackGeneration++
 	clearInterval(timerInterval)
 	timer.value = 0
+}
+
+const openCodingLab = (event) => {
+	const requested = normalizeCodingLab(
+		event.detail?.lab || {},
+		event.detail?.lab?.block_id
+	)
+	const lab = codingLabs.value.find(
+		(item) => item.block_id === requested.block_id
+	)
+	if (lab) activeLabId.value = lab.block_id
+}
+
+const closeCodingLab = () => {
+	activeLabId.value = null
+}
+
+const startWorkspaceResize = (event) => {
+	if (event.button !== 0) return
+	workspaceResizeActive = true
+	event.currentTarget?.setPointerCapture?.(event.pointerId)
+	window.addEventListener('pointermove', resizeWorkspace)
+	window.addEventListener('pointerup', stopWorkspaceResize, { once: true })
+}
+
+const resizeWorkspace = (event) => {
+	if (!workspaceResizeActive || !learningGrid.value) return
+	const rect = learningGrid.value.getBoundingClientRect()
+	lessonShare.value = lessonShareFromPointer(
+		event.clientX,
+		rect.left,
+		rect.width,
+		document.documentElement.dir === 'rtl'
+	)
+}
+
+const stopWorkspaceResize = () => {
+	if (!workspaceResizeActive) return
+	workspaceResizeActive = false
+	window.removeEventListener('pointermove', resizeWorkspace)
+	storeLessonShare()
+}
+
+const resizeWorkspaceByKeyboard = (event) => {
+	if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return
+	event.preventDefault()
+	const key =
+		document.documentElement.dir === 'rtl'
+			? event.key === 'ArrowLeft'
+				? 'ArrowRight'
+				: 'ArrowLeft'
+			: event.key
+	lessonShare.value = resizeLessonShare(
+		lessonShare.value,
+		key,
+		event.shiftKey ? 5 : 2
+	)
+	storeLessonShare()
+}
+
+function readLessonShare() {
+	try {
+		return clampLessonShare(
+			globalThis.localStorage?.getItem('lms:coding-lab:lesson-share') || 50
+		)
+	} catch {
+		return 50
+	}
+}
+
+function storeLessonShare() {
+	try {
+		globalThis.localStorage?.setItem(
+			'lms:coding-lab:lesson-share',
+			String(lessonShare.value)
+		)
+	} catch {}
 }
 
 const trackVideoWatchDuration = () => {

@@ -16,6 +16,14 @@ const props = defineProps({
 		type: Object,
 		default: () => ({}),
 	},
+	saveIde: {
+		type: Function,
+		default: null,
+	},
+	allowCodingLab: {
+		type: Boolean,
+		default: true,
+	},
 })
 
 const emit = defineEmits(['change'])
@@ -49,6 +57,25 @@ function handleBelowLastBlockClick(e) {
 // It's synthetic: stripped from save() output, and its own insertion is
 // suppressed so it never marks the lesson dirty or triggers an autosave.
 let suppressChange = false
+let suppressCodingLabChange = false
+
+async function handleCodingLabSave(event) {
+	const detail = event.detail
+	if (!detail || typeof detail.commit !== 'function' || !props.saveIde) return
+	detail.handled = true
+	try {
+		// The tool commits only after it has found the containing LessonForm.
+		// Suppress the corresponding ordinary onChange autosave; saveIde below
+		// serializes that same committed snapshot and awaits server persistence.
+		suppressCodingLabChange = true
+		detail.commit()
+		await props.saveIde({ blockId: detail.blockId })
+		detail.resolve()
+	} catch (error) {
+		suppressCodingLabChange = false
+		detail.reject(error)
+	}
+}
 
 function isEmptyTextBlock(block) {
 	if (block?.type !== 'markdown' && block?.type !== 'paragraph') return false
@@ -76,7 +103,9 @@ function ensureTrailingBlock() {
 onMounted(() => {
 	editor = new EditorJS({
 		holder: holderRef.value,
-		tools: getEditorTools(false, props.uploadContext),
+		tools: getEditorTools(false, props.uploadContext, {
+			codingLab: props.allowCodingLab,
+		}),
 		tunes: getEditorTunes(),
 		defaultBlock: 'markdown',
 		i18n: {
@@ -93,11 +122,16 @@ onMounted(() => {
 			// that settings button a drag handle so blocks reorder by dragging.
 			new DragDrop(editor)
 			holderRef.value?.addEventListener('click', handleBelowLastBlockClick)
+			holderRef.value?.addEventListener(
+				'lms:coding-lab-save-request',
+				handleCodingLabSave
+			)
 		},
 		onChange: async () => {
 			enablePlyr()
 			// Don't propagate (or autosave) our own synthetic trailing block.
-			if (suppressChange) suppressChange = false
+			if (suppressCodingLabChange) suppressCodingLabChange = false
+			else if (suppressChange) suppressChange = false
 			else emit('change')
 			ensureTrailingBlock()
 		},
@@ -106,6 +140,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	holderRef.value?.removeEventListener('click', handleBelowLastBlockClick)
+	holderRef.value?.removeEventListener(
+		'lms:coding-lab-save-request',
+		handleCodingLabSave
+	)
 	const instance = editor
 	editor = null
 	instance?.isReady.then(() => instance.destroy()).catch(() => {})

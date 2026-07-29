@@ -59,6 +59,7 @@
 					ref="instructorEditor"
 					class="instructor-notes-editor border-t border-outline-gray-2 py-3"
 					:uploadContext="instructorUploadContext"
+					:allowCodingLab="false"
 					@change="markDirty"
 				/>
 			</details>
@@ -66,6 +67,7 @@
 			<BlockEditor
 				ref="editor"
 				:uploadContext="contentUploadContext"
+				:saveIde="saveCodingLab"
 				@change="markDirty"
 			/>
 		</div>
@@ -169,6 +171,7 @@ const props = defineProps({
 })
 
 const isDirty = ref(false)
+let dirtyRevision = 0
 let isUnmounting = false
 let lessonDeleted = false
 function markDeleted() {
@@ -177,7 +180,8 @@ function markDeleted() {
 
 const autoSave = useDebounceFn(() => {
 	if (lessonDeleted) return
-	if (isDirty.value && lessonDetails.data?.lesson) saveLesson()
+	if (isDirty.value && lessonDetails.data?.lesson)
+		saveLesson().catch(() => {})
 }, 800)
 
 function markDirty({ fromTitle = false } = {}) {
@@ -186,6 +190,7 @@ function markDirty({ fromTitle = false } = {}) {
 	// render() fires onChange; gate non-title saves until loaded.
 	if (!fromTitle && !initialLoadComplete) return
 	isDirty.value = true
+	dirtyRevision += 1
 	// Capture block data now so a later flush persists latest, not stale.
 	if (!fromTitle) captureEditors()
 	autoSave()
@@ -312,7 +317,8 @@ onBeforeUnmount(() => {
 	isUnmounting = true
 	// Flush unsaved edits before teardown; skip if deleted.
 	if (lessonDeleted) return
-	if (isDirty.value && lessonDetails.data?.lesson) saveLesson({ flush: true })
+	if (isDirty.value && lessonDetails.data?.lesson)
+		saveLesson({ flush: true }).catch(() => {})
 })
 
 const newLessonResource = createResource({
@@ -401,26 +407,53 @@ const captureEditors = async () => {
 	foldEditorData(bodyData, notesData)
 }
 
-function saveLesson({ flush = false } = {}) {
-	// Serialise both editors concurrently before unmount destroys them.
+let saveQueue = Promise.resolve()
+
+function saveLesson({ flush = false, rejectOnError = false } = {}) {
+	// Capture editor promises before entering the queue. During component
+	// teardown Vue destroys child editors immediately after this hook returns;
+	// deferring save() to the queue would therefore lose their last live values.
 	const bodyPromise = serialise(editor.value)
 	const notesPromise = serialise(instructorEditor.value)
+	const queued = saveQueue.catch(() => {}).then(async () => {
+		return performLessonSave({
+			flush,
+			rejectOnError,
+			bodyPromise,
+			notesPromise,
+		})
+	})
+	saveQueue = queued
+	return queued
+}
 
-	Promise.all([bodyPromise, notesPromise]).then(([bodyData, notesData]) => {
+async function performLessonSave({
+	flush = false,
+	rejectOnError = false,
+	bodyPromise,
+	notesPromise,
+} = {}) {
+	const revisionAtStart = dirtyRevision
+	try {
+		const [bodyData, notesData] = await Promise.all([bodyPromise, notesPromise])
 		const bodyHasContent = foldEditorData(bodyData, notesData)
 
 		// Skip when there's nothing to save — no title, no body.
-		if (shouldSkipLessonSave(lesson.title, bodyHasContent)) return
+		if (shouldSkipLessonSave(lesson.title, bodyHasContent)) return false
 
 		// During teardown only an explicit flush may persist.
-		if (isUnmounting && !flush) return
-		if (lessonDeleted) return
+		if (isUnmounting && !flush) return false
+		if (lessonDeleted) return false
 		if (lessonDetails.data?.lesson) {
-			editCurrentLesson()
+			await editCurrentLesson(false, rejectOnError, revisionAtStart)
 		} else {
-			createNewLesson()
+			await createNewLesson(revisionAtStart)
 		}
-	})
+		return true
+	} catch (error) {
+		if (rejectOnError) throw error
+		return false
+	}
 }
 
 const removeEmptyBlocks = (outputData) => {
@@ -431,8 +464,8 @@ const removeEmptyBlocks = (outputData) => {
 	return outputData
 }
 
-const createNewLesson = () => {
-	newLessonResource.submit(
+const createNewLesson = (revisionAtStart = dirtyRevision) => {
+	return newLessonResource.submit(
 		{},
 		{
 			validate() {
@@ -448,7 +481,7 @@ const createNewLesson = () => {
 
 							capture('lesson_created')
 							toast.success(__('Lesson created successfully'))
-							isDirty.value = false
+							if (dirtyRevision === revisionAtStart) isDirty.value = false
 							emit('saved', { isNew: true })
 							lessonDetails.reload()
 						},
@@ -462,9 +495,13 @@ const createNewLesson = () => {
 	)
 }
 
-const editCurrentLesson = (isRetry = false) => {
+const editCurrentLesson = (
+	isRetry = false,
+	rejectOnError = false,
+	revisionAtStart = dirtyRevision
+) => {
 	// Catch the re-thrown rejection: a save racing a delete 404s harmlessly.
-	editLesson
+	return editLesson
 		.submit(
 			{
 				lesson: lessonDetails.data.lesson.name,
@@ -474,7 +511,7 @@ const editCurrentLesson = (isRetry = false) => {
 					return validateLesson()
 				},
 				onSuccess() {
-					isDirty.value = false
+					if (dirtyRevision === revisionAtStart) isDirty.value = false
 					emit('saved', {
 						name: lessonDetails.data.lesson.name,
 						title: lesson.title,
@@ -490,14 +527,32 @@ const editCurrentLesson = (isRetry = false) => {
 			// editor; re-resolve it by index and retry once (a plain reload would
 			// drop the unsaved edits we're saving).
 			if (!isRetry && err?.exc_type === 'DoesNotExistError') {
-				resolveLessonName().then((name) => {
-					if (name) editCurrentLesson(true)
-					else toast.error(err.messages?.[0] || err.message || err)
+				return resolveLessonName().then((name) => {
+					if (name)
+						return editCurrentLesson(
+							true,
+							rejectOnError,
+							revisionAtStart
+						)
+					toast.error(err.messages?.[0] || err.message || err)
+					if (rejectOnError) throw err
 				})
-				return
 			}
 			toast.error(err.messages?.[0] || err.message || err)
+			if (rejectOnError) throw err
+			return false
 		})
+}
+
+const saveCodingLab = async () => {
+	if (lessonDeleted || isUnmounting)
+		throw new Error(__('The lesson is no longer available.'))
+	autoSave.cancel?.()
+	isDirty.value = true
+	dirtyRevision += 1
+	await captureEditors()
+	const saved = await saveLesson({ rejectOnError: true })
+	if (!saved) throw new Error(__('The Coding Lab could not be saved.'))
 }
 
 const resolveLessonName = () =>

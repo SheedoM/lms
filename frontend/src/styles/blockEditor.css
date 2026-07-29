@@ -422,3 +422,598 @@ iframe {
 	background: none;
 	cursor: pointer;
 }
+
+/* Native Coding Lab block and learner workspace. */
+.coding-lab-block {
+	margin: 1rem 0;
+	color: #e5e7eb;
+	font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.coding-lab-kind-picker,
+.coding-lab-author-terminal,
+.coding-lab-practice-card {
+	border: 1px solid #263244;
+	border-radius: 12px;
+	background: #0b1220;
+	box-shadow: 0 12px 30px rgb(15 23 42 / 12%);
+}
+
+.coding-lab-kind-picker {
+	padding: 1rem;
+}
+
+.coding-lab-muted,
+.coding-lab-kind-picker p {
+	margin: 0.35rem 0 0;
+	color: #94a3b8;
+	font-size: 0.875rem;
+}
+
+.coding-lab-kind-actions {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.75rem;
+	margin-top: 1rem;
+}
+
+.coding-lab-kind-button {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	min-height: 76px;
+	padding: 0.85rem;
+	border: 1px solid #334155;
+	border-radius: 8px;
+	background: #111827;
+	color: #f8fafc;
+	text-align: start;
+	cursor: pointer;
+}
+
+.coding-lab-kind-button:hover,
+.coding-lab-kind-button:focus-visible,
+.coding-lab-button:hover,
+.coding-lab-button:focus-visible {
+	border-color: #38bdf8;
+	outline: none;
+}
+
+.coding-lab-kind-button span {
+	color: #94a3b8;
+	font-size: 0.8rem;
+}
+
+.coding-lab-author-header,
+.coding-lab-author-footer,
+.coding-lab-workspace-header,
+.coding-lab-heading,
+.coding-lab-ide-topbar,
+.coding-lab-ide-actions,
+.coding-lab-tabs,
+.coding-lab-console-titlebar {
+	display: flex;
+	align-items: center;
+}
+
+.coding-lab-author-header,
+.coding-lab-author-footer,
+.coding-lab-workspace-header,
+.coding-lab-ide-topbar,
+.coding-lab-console-titlebar {
+	justify-content: space-between;
+}
+
+.coding-lab-author-header {
+	margin-bottom: 0.5rem;
+	color: #0f172a;
+}
+
+.coding-lab-heading {
+	gap: 0.5rem;
+}
+
+.coding-lab-mode-badge {
+	display: inline-flex;
+	align-items: center;
+	flex: none;
+	padding: 0.15rem 0.5rem;
+	border: 1px solid #155e75;
+	border-radius: 999px;
+	background: #083344;
+	color: #a5f3fc;
+	font-size: 0.72rem;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.coding-lab-author-terminal {
+	overflow: hidden;
+}
+
+.coding-lab-author-task-grid {
+	display: grid;
+	grid-template-columns: minmax(180px, 0.65fr) minmax(240px, 1.35fr);
+	gap: 0.75rem;
+	padding: 0.85rem;
+	border-bottom: 1px solid #263244;
+}
+
+.coding-lab-terminal-field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	min-width: 0;
+	color: #94a3b8;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 0.75rem;
+}
+
+.coding-lab-terminal-field input,
+.coding-lab-terminal-field textarea {
+	width: 100%;
+	min-height: 36px;
+	padding: 0.55rem 0.65rem;
+	border: 0;
+	border-radius: 5px;
+	outline: 1px solid #263244;
+	background: #050b14;
+	color: #e2e8f0;
+	font: 0.82rem/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+		monospace;
+	resize: vertical;
+}
+
+.coding-lab-terminal-field input:focus,
+.coding-lab-terminal-field textarea:focus {
+	outline: 1px solid #38bdf8;
+	box-shadow: 0 0 0 2px rgb(56 189 248 / 16%);
+}
+
+.coding-lab-web-files {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	padding: 0.55rem 0.85rem;
+	border: 0;
+	border-bottom: 1px solid #263244;
+	color: #cbd5e1;
+	font-size: 0.78rem;
+}
+
+.coding-lab-web-files legend {
+	float: inline-start;
+	margin-inline-end: 0.25rem;
+	color: #64748b;
+}
+
+.coding-lab-file-check {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.coding-lab-ide {
+	display: flex;
+	flex-direction: column;
+	min-height: 390px;
+	background: #070d17;
+}
+
+.coding-lab-ide-topbar {
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	min-height: 42px;
+	padding: 0.35rem 0.5rem;
+	border-bottom: 1px solid #263244;
+	background: #111827;
+}
+
+.coding-lab-tabs,
+.coding-lab-ide-actions {
+	flex-wrap: wrap;
+	gap: 0.25rem;
+}
+
+.coding-lab-button {
+	min-height: 30px;
+	padding: 0.3rem 0.65rem;
+	border: 1px solid #334155;
+	border-radius: 6px;
+	background: #172033;
+	color: #e2e8f0;
+	font-size: 0.78rem;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.coding-lab-button:disabled {
+	cursor: wait;
+	opacity: 0.6;
+}
+
+.coding-lab-button--primary {
+	border-color: #0891b2;
+	background: #0891b2;
+	color: white;
+}
+
+.coding-lab-button--tab {
+	border-color: transparent;
+	border-radius: 4px;
+	background: transparent;
+	color: #94a3b8;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.coding-lab-button--tab.is-active,
+.coding-lab-button--tab[aria-selected='true'] {
+	border-color: #334155;
+	background: #1e293b;
+	color: #f8fafc;
+}
+
+.coding-lab-button--quiet {
+	min-height: 24px;
+	padding: 0.15rem 0.45rem;
+	border-color: transparent;
+	background: transparent;
+}
+
+.coding-lab-code-editor {
+	display: none;
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 250px;
+	flex: 1 1 250px;
+	padding: 1rem;
+	border: 0;
+	outline: none;
+	background: #050b14;
+	color: #dbeafe;
+	caret-color: #67e8f9;
+	font: 0.86rem/1.65 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+		monospace;
+	resize: vertical;
+	tab-size: 4;
+}
+
+.coding-lab-code-editor.is-active {
+	display: block;
+}
+
+.coding-lab-tests-editor {
+	padding: 0.75rem;
+	border-top: 1px solid #263244;
+}
+
+.coding-lab-tests-editor textarea {
+	min-height: 88px;
+}
+
+.coding-lab-console {
+	border-top: 1px solid #263244;
+	background: #020617;
+}
+
+.coding-lab-console-title {
+	display: block;
+	padding: 0.45rem 0.75rem;
+	border-bottom: 1px solid #1e293b;
+	color: #94a3b8;
+	font-size: 0.72rem;
+	text-transform: uppercase;
+}
+
+.coding-lab-console pre,
+.coding-lab-learner-console pre {
+	min-height: 80px;
+	margin: 0;
+	padding: 0.75rem;
+	overflow: auto;
+	background: transparent;
+	color: #d1fae5;
+	font: 0.78rem/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+		monospace;
+	white-space: pre-wrap;
+}
+
+.coding-lab-author-preview {
+	width: 100%;
+	min-height: 170px;
+	border: 0;
+	border-top: 1px solid #263244;
+	background: white;
+}
+
+.coding-lab-author-footer {
+	justify-content: flex-end;
+	gap: 0.75rem;
+	padding-top: 0.65rem;
+}
+
+.coding-lab-save-status {
+	min-width: 4.5rem;
+	color: #64748b;
+	font-size: 0.78rem;
+}
+
+.coding-lab-save-status[data-state='saved'] {
+	color: #15803d;
+}
+
+.coding-lab-save-status[data-state='error'] {
+	color: #b91c1c;
+}
+
+.coding-lab-practice-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 1rem;
+	color: #e2e8f0;
+}
+
+.coding-lab-practice-content {
+	min-width: 0;
+}
+
+.coding-lab-practice-eyebrow {
+	display: block;
+	margin-bottom: 0.25rem;
+	color: #67e8f9;
+	font-size: 0.7rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.coding-lab-practice-card h3 {
+	margin: 0;
+	color: #f8fafc;
+	font-size: 1rem;
+}
+
+.coding-lab-learning-grid {
+	grid-template-columns:
+		minmax(0, var(--coding-lab-lesson-share)) 7px
+		minmax(0, calc(100% - var(--coding-lab-lesson-share) - 7px)) !important;
+	overflow: hidden;
+}
+
+.coding-lab-workspace-divider {
+	position: relative;
+	z-index: 5;
+	background: #cbd5e1;
+	cursor: col-resize;
+	touch-action: none;
+}
+
+.coding-lab-workspace-divider:hover,
+.coding-lab-workspace-divider:focus-visible {
+	background: #0891b2;
+	outline: none;
+}
+
+.coding-lab-workspace {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+	background: #0b1220;
+	color: #e2e8f0;
+}
+
+.coding-lab-workspace-header {
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	min-height: 48px;
+	padding: 0.55rem 0.75rem;
+	border-bottom: 1px solid #263244;
+	background: #111827;
+}
+
+.coding-lab-switcher {
+	max-width: 180px;
+	min-height: 30px;
+	padding: 0.25rem 0.5rem;
+	border: 1px solid #334155;
+	border-radius: 6px;
+	background: #172033;
+	color: #e2e8f0;
+	font-size: 0.78rem;
+}
+
+.coding-lab-task-panel {
+	padding: 0.75rem 0.9rem;
+	border-bottom: 1px solid #263244;
+	background: #0f172a;
+}
+
+.coding-lab-task-copy {
+	max-height: 130px;
+	margin-top: 0.35rem;
+	overflow: auto;
+	color: #cbd5e1;
+	font-size: 0.85rem;
+	line-height: 1.55;
+}
+
+.coding-lab-task-copy > :first-child {
+	margin-top: 0;
+}
+
+.coding-lab-task-copy > :last-child {
+	margin-bottom: 0;
+}
+
+.coding-lab-learner-ide {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden;
+	background: #050b14;
+}
+
+.coding-lab-learner-editor {
+	min-height: 180px;
+	resize: none;
+}
+
+.coding-lab-preview-pane,
+.coding-lab-test-pane {
+	flex: 1 1 auto;
+	min-height: 180px;
+	overflow: auto;
+	background: white;
+}
+
+.coding-lab-preview-frame {
+	display: block;
+	width: 100%;
+	height: 100%;
+	min-height: 250px;
+	border: 0;
+	background: white;
+}
+
+.coding-lab-test-pane {
+	padding: 1rem;
+	background: #070d17;
+	color: #e2e8f0;
+}
+
+.coding-lab-test-results {
+	display: grid;
+	gap: 0.45rem;
+	margin: 0.75rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.coding-lab-test-results li {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 0.15rem 0.5rem;
+	padding: 0.55rem 0.65rem;
+	border: 1px solid #334155;
+	border-radius: 6px;
+}
+
+.coding-lab-test-results li small {
+	grid-column: 2;
+	color: #94a3b8;
+}
+
+.coding-lab-test-results .is-passed {
+	border-color: #166534;
+	color: #86efac;
+}
+
+.coding-lab-test-results .is-failed {
+	border-color: #991b1b;
+	color: #fca5a5;
+}
+
+.coding-lab-console-resizer {
+	height: 6px;
+	flex: none;
+	border-top: 1px solid #334155;
+	border-bottom: 1px solid #334155;
+	background: #172033;
+	cursor: row-resize;
+	touch-action: none;
+}
+
+.coding-lab-console-resizer:hover,
+.coding-lab-console-resizer:focus-visible {
+	background: #0891b2;
+	outline: none;
+}
+
+.coding-lab-learner-console {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	min-height: 100px;
+	max-height: 420px;
+	background: #020617;
+}
+
+.coding-lab-console-titlebar {
+	min-height: 32px;
+	padding: 0.25rem 0.65rem;
+	border-bottom: 1px solid #1e293b;
+	color: #94a3b8;
+	font-size: 0.72rem;
+	text-transform: uppercase;
+}
+
+.coding-lab-learner-console pre {
+	min-height: 0;
+	flex: 1 1 auto;
+}
+
+.coding-lab-console-collapsed {
+	min-height: 34px;
+	flex: none;
+	border: 0;
+	border-top: 1px solid #334155;
+	background: #111827;
+	color: #94a3b8;
+	text-align: start;
+	padding-inline: 0.75rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+@media (max-width: 900px) {
+	.coding-lab-learning-grid {
+		display: flex !important;
+		flex-direction: column;
+		height: auto !important;
+		min-height: calc(100vh - 60px);
+		overflow: visible;
+	}
+
+	.coding-lab-learning-grid > .bg-surface-base {
+		max-height: 46vh;
+		flex: none;
+		overflow-y: auto;
+	}
+
+	.coding-lab-workspace-divider {
+		display: none;
+	}
+
+	.coding-lab-workspace {
+		min-height: 70vh;
+	}
+
+	.coding-lab-author-task-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 600px) {
+	.coding-lab-kind-actions {
+		grid-template-columns: 1fr;
+	}
+
+	.coding-lab-practice-card {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
+	.coding-lab-ide-topbar,
+	.coding-lab-workspace-header {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+}

@@ -25,6 +25,10 @@ import Embed from '@editorjs/embed'
 import SimpleImage from '@editorjs/simple-image'
 import Table from '@editorjs/table'
 import DOMPurify from 'dompurify'
+import {
+	CodingLab,
+	LegacyCodingLab,
+} from '@/utils/codingLab/CodingLab'
 
 const readOnlyMode = window.read_only_mode
 
@@ -141,9 +145,9 @@ const INLINE_TOOLBAR_ORDER = [
 export function getEditorTools(
 	isInstructorEditor = false,
 	uploadContext = {},
-	{ studentView = false } = {}
+	{ studentView = false, codingLab = true } = {}
 ) {
-	return {
+	const tools = {
 		header: {
 			class: Heading,
 			// Without this key EditorJS leaves tool.inlineTools empty, so the
@@ -200,6 +204,20 @@ export function getEditorTools(
 			class: CodeBox,
 			config: {
 				useDefaultTheme: 'dark',
+			},
+		},
+		codingLab: {
+			class: CodingLab,
+			config: {
+				authorPreview: studentView,
+			},
+		},
+		// Keep old lesson snapshots renderable without exposing a duplicate
+		// toolbox entry. New blocks always use the canonical `codingLab` type.
+		coding_lab: {
+			class: LegacyCodingLab,
+			config: {
+				authorPreview: studentView,
 			},
 		},
 		inlineCode: {
@@ -309,6 +327,11 @@ export function getEditorTools(
 			},
 		},
 	}
+	if (!codingLab) {
+		delete tools.codingLab
+		delete tools.coding_lab
+	}
+	return tools
 }
 
 // Block tunes added to every block's settings menu (alongside the native
@@ -778,7 +801,15 @@ const sanitizeJSON = (node) => {
 export const sanitizeEditorJs = (data) => {
 	if (!data || !Array.isArray(data.blocks)) return data
 	for (const node of data.blocks) {
-		if (node && node.type !== 'code') {
+		// Coding Lab source is inert block data: it is only assigned to textarea
+		// values or executed in an opaque-origin sandbox/Worker. Sanitizing it as
+		// rich text would corrupt authored HTML and operators such as `<`.
+		if (
+			node &&
+			node.type !== 'code' &&
+			node.type !== 'codingLab' &&
+			node.type !== 'coding_lab'
+		) {
 			node.data = sanitizeJSON(node.data)
 		}
 	}
