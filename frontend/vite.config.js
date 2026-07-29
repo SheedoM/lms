@@ -1,8 +1,15 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
-import { VitePWA } from 'vite-plugin-pwa'
+import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
+
+// vite-plugin-pwa 1.2's ESM bundle passes a directory to createRequire(), which
+// Node 24 rejects before Vite can load its config. The package's CJS export uses
+// its absolute __dirname and is otherwise the same plugin.
+const require = createRequire(import.meta.url)
+const { VitePWA } = require('vite-plugin-pwa')
 
 export default defineConfig(async ({ mode }) => {
 	const isDev = mode === 'development'
@@ -13,8 +20,34 @@ export default defineConfig(async ({ mode }) => {
 			__VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
 		},
 		plugins: [
+			{
+				name: 'standalone-socket-config',
+				enforce: 'pre',
+				resolveId(source, importer) {
+					if (
+						source === '../../../../sites/common_site_config.json' &&
+						importer?.endsWith('/src/socket.js')
+					) {
+						const benchConfig = path.resolve(
+							__dirname,
+							'../../../../sites/common_site_config.json'
+						)
+						if (!fs.existsSync(benchConfig)) {
+							return '\0standalone-common-site-config'
+						}
+					}
+				},
+				load(id) {
+					if (id === '\0standalone-common-site-config') {
+						return 'export const socketio_port = 9000'
+					}
+				},
+			},
 			frappeui({
-				frappeProxy: true,
+				// The proxy is a dev-server concern. Disabling it for production
+				// also avoids frappe-ui's bench-path walker looping at a Windows
+				// drive root (path.dirname('F:\\') is still 'F:\\').
+				frappeProxy: isDev,
 				lucideIcons: true,
 				jinjaBootData: true,
 				buildConfig: {

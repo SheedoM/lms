@@ -159,6 +159,7 @@ import BatchForm from '@/pages/Batches/BatchForm.vue'
 import BulkCertificates from '@/pages/Batches/components/BulkCertificates.vue'
 import Discussions from '@/components/Discussions.vue'
 import ShortcutTooltip from '@/components/ShortcutTooltip.vue'
+import { isPureStudentData } from '@/composables/useStudentExperience'
 
 const router = useRouter()
 const route = useRoute()
@@ -170,6 +171,7 @@ const tabs = ref([])
 const openCertificateDialog = ref(false)
 const showAnnouncementModal = ref(false)
 const readOnlyMode = window.read_only_mode
+const isPureStudent = computed(() => isPureStudentData(user.data))
 
 const props = defineProps({
 	batchName: {
@@ -298,7 +300,12 @@ const batchMenu = computed(() => {
 })
 
 const breadcrumbs = computed(() => {
-	let crumbs = [{ label: __('Batches'), route: { name: 'Batches' } }]
+	let crumbs = [
+		{
+			label: isPureStudent.value ? __('Group') : __('Batches'),
+			route: isPureStudent.value ? { name: 'Home' } : { name: 'Batches' },
+		},
+	]
 	crumbs.push({
 		label: batch?.data?.title,
 		route: { name: 'BatchDetail', params: { batchName: batch?.data?.name } },

@@ -100,6 +100,7 @@ import {
 	markAsRead,
 	markAllAsRead,
 } from '@/stores/notifications'
+import { notificationRoute } from '@/utils/notifications'
 
 const dayjs = inject('$dayjs')
 const router = useRouter()
@@ -151,18 +152,8 @@ const onSelect = (n) => {
 }
 
 const navigateToPage = (log) => {
-	if (!log.link) return
-	let link = log.link.split('/')
-	if (link[2] == 'courses') {
-		router.push({ name: 'CourseDetail', params: { courseName: link[3] } })
-	} else if (link.includes('batches')) {
-		router.push({ name: 'BatchDetail', params: { batchName: link.pop() } })
-	} else if (link.includes('assignment-submission')) {
-		router.push({
-			name: 'AssignmentSubmission',
-			params: { submissionName: link[4], assignmentID: link[3] },
-		})
-	}
+	const route = notificationRoute(log)
+	if (route) router.push(route)
 }
 </script>
 <style scoped>

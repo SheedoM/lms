@@ -13,11 +13,24 @@
 					"
 				>
 					<img
-						v-if="branding.data?.banner_image"
-						:src="branding.data?.banner_image.file_url"
+						v-if="
+							branding.data?.app_logo?.file_url ||
+							branding.data?.banner_image?.file_url
+						"
+						:src="
+							branding.data?.app_logo?.file_url ||
+							branding.data?.banner_image?.file_url
+						"
+						:alt="__('Faragallah Tech')"
 						class="w-8 h-8 rounded flex-shrink-0"
 					/>
-					<LMSLogo v-else class="w-8 h-8 rounded flex-shrink-0" />
+					<div
+						v-else
+						aria-hidden="true"
+						class="ft-brand-mark grid h-8 w-8 flex-shrink-0 place-items-center rounded"
+					>
+						FT
+					</div>
 					<div
 						class="flex flex-1 flex-col text-start duration-300 ease-in-out"
 						:class="
@@ -34,7 +47,7 @@
 							>
 								{{ branding.data?.app_name }}
 							</span>
-							<span v-else> Learning </span>
+							<span v-else> Faragallah Tech </span>
 						</div>
 						<div
 							v-if="userResource.data"
@@ -76,7 +89,6 @@ import { createDialog } from '@/utils/dialogs'
 import Apps from '@/components/Sidebar/Apps.vue'
 import Configuration from '@/components/Sidebar/Configuration.vue'
 import FrappeCloudIcon from '@/components/Icons/FrappeCloudIcon.vue'
-import LMSLogo from '@/components/Icons/LMSLogo.vue'
 import SettingsModal from '@/components/Settings/Settings.vue'
 import { Moon, Sun } from 'lucide-vue-next'
 

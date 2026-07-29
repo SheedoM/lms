@@ -4,6 +4,7 @@ import { usersStore } from './stores/user'
 import { sessionStore } from './stores/session'
 import { useSettings } from './stores/settings'
 import { getLmsBasePath } from './utils/basePath'
+import { getStudentRouteDecision } from './composables/useStudentExperience'
 
 // Run the fresh-site-admin persona check at most once per app load.
 let personaChecked = false
@@ -32,7 +33,7 @@ const routes = [
 	{
 		path: '/courses',
 		name: 'Courses',
-		component: () => import('@/pages/Courses/Courses.vue'),
+		component: () => import('@/pages/Courses/CoursesRoute.vue'),
 	},
 	{
 		path: '/courses/:courseName',
@@ -193,6 +194,24 @@ const routes = [
 		component: () => import('@/pages/Assignments.vue'),
 	},
 	{
+		path: '/assessments',
+		name: 'StudentAssessments',
+		component: () => import('@/pages/Student/Assessments.vue'),
+		meta: { pureStudentOnly: true },
+	},
+	{
+		path: '/notifications',
+		name: 'StudentNotifications',
+		component: () => import('@/pages/Student/Notifications.vue'),
+		meta: { pureStudentOnly: true },
+	},
+	{
+		path: '/account',
+		name: 'StudentAccount',
+		component: () => import('@/pages/Student/Account.vue'),
+		meta: { pureStudentOnly: true },
+	},
+	{
 		path: '/assignment-submission/:assignmentID/:submissionName',
 		name: 'AssignmentSubmission',
 		component: () => import('@/pages/AssignmentSubmission.vue'),
@@ -282,6 +301,18 @@ router.beforeEach(async (to, from, next) => {
 			window.location.href = '/login'
 			return
 		}
+	}
+
+	const studentRouteDecision = getStudentRouteDecision({
+		routeName: to.name,
+		path: to.path,
+		user: userResource.data,
+	})
+	if (studentRouteDecision === 'home') {
+		return next({ name: 'Home' })
+	}
+	if (studentRouteDecision === 'courses') {
+		return next({ name: 'Courses' })
 	}
 
 	if (

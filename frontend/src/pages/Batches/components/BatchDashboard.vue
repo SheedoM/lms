@@ -8,9 +8,13 @@
 					</div>
 					<div class="text-ink-gray-7">
 						{{
-							__(
-								"As a part of this batch's curriculum you will have to complete the following courses and assessments."
-							)
+							isPureStudent
+								? __(
+										"As part of this group's curriculum, complete the following courses and assessments."
+								  )
+								: __(
+										"As a part of this batch's curriculum you will have to complete the following courses and assessments."
+								  )
 						}}
 					</div>
 				</div>
@@ -82,7 +86,7 @@
 	</div>
 </template>
 <script setup>
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import {
 	createListResource,
 	ListView,
@@ -95,8 +99,10 @@ import Assessments from '@/pages/Batches/components/Assessments.vue'
 import BatchCourses from '@/pages/Batches/components/BatchCourses.vue'
 import BatchFeedback from '@/pages/Batches/components/BatchFeedback.vue'
 import UpcomingEvaluations from '@/components/UpcomingEvaluations.vue'
+import { isPureStudentData } from '@/composables/useStudentExperience'
 
 const user = inject('$user')
+const isPureStudent = computed(() => isPureStudentData(user.data))
 
 const props = defineProps({
 	batch: {

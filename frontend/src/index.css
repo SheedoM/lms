@@ -2,6 +2,88 @@
 @import 'frappe-ui/list-style.css';
 @import './styles/blockEditor.css';
 
+:root {
+	--ft-nav: #05131a;
+	--ft-nav-raised: #071b24;
+	--ft-primary: #9cff45;
+	--ft-canvas: #f6f1e8;
+	--ft-surface: #fffaf2;
+	--ft-muted: #61737b;
+	--ft-ink: #10252d;
+	--ft-border: rgba(5, 19, 26, 0.12);
+}
+
+[data-theme='dark'] {
+	--ft-nav: #05131a;
+	--ft-nav-raised: #071b24;
+	--ft-primary: #9cff45;
+	--ft-canvas: #071b24;
+	--ft-surface: #0c2732;
+	--ft-muted: #aebcc2;
+	--ft-ink: #eef4f1;
+	--ft-border: rgba(174, 188, 194, 0.18);
+}
+
+.ft-student-experience {
+	--surface-base: var(--ft-canvas);
+	--surface-sidebar: var(--ft-nav);
+	--surface-elevation-1: var(--ft-surface);
+	--surface-elevation-2: color-mix(in srgb, var(--ft-surface) 90%, white 10%);
+	--outline-gray-2: var(--ft-border);
+	--ink-gray-9: var(--ft-ink);
+	--ink-gray-7: var(--ft-muted);
+	--ink-gray-5: var(--ft-muted);
+	font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', system-ui, -apple-system,
+		'Segoe UI', sans-serif;
+}
+
+.ft-display,
+.ft-student-experience h1,
+.ft-student-experience h2,
+.ft-student-experience h3 {
+	font-family: Alexandria, 'IBM Plex Sans Arabic', system-ui, sans-serif;
+}
+
+.ft-student-nav {
+	background:
+		linear-gradient(145deg, rgba(156, 255, 69, 0.04), transparent 38%),
+		var(--ft-nav);
+}
+
+.ft-brand-mark {
+	border: 1px solid rgba(156, 255, 69, 0.45);
+	background: rgba(156, 255, 69, 0.1);
+	color: var(--ft-primary);
+	font-family: Alexandria, system-ui, sans-serif;
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: -0.04em;
+}
+
+.ft-grid {
+	background-image:
+		linear-gradient(var(--ft-border) 1px, transparent 1px),
+		linear-gradient(90deg, var(--ft-border) 1px, transparent 1px);
+	background-size: 32px 32px;
+	background-attachment: local;
+}
+
+.ft-panel {
+	border: 1px solid var(--ft-border);
+	background: color-mix(in srgb, var(--ft-surface) 94%, transparent);
+	box-shadow: 0 18px 45px rgba(5, 19, 26, 0.06);
+	backdrop-filter: blur(8px);
+}
+
+.ft-primary-button {
+	background: var(--ft-primary);
+	color: #05131a;
+}
+
+.ft-primary-button:hover {
+	background: #88e93a;
+}
+
 /* This build makes --surface-sidebar transparent in dark mode; point it at
    gray-1 so the sidebar keeps a visible surface. */
 [data-theme='dark'] {

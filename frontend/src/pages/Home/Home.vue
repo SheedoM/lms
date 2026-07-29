@@ -1,9 +1,20 @@
 <template>
-	<div class="w-full px-5 pt-5 pb-10">
+	<div
+		class="w-full pb-10"
+		:class="
+			isPureStudent
+				? 'mx-auto max-w-7xl px-4 py-6 sm:px-7 lg:px-10 lg:py-9'
+				: 'px-5 pt-5'
+		"
+	>
 		<div class="space-y-2">
 			<div class="flex items-center justify-between">
-				<h1 class="text-2xl-bold text-ink-gray-9">
-					{{ __('Hey') }}, {{ user.data?.full_name }} 👋
+				<h1
+					class="text-ink-gray-9"
+					:class="isPureStudent ? 'text-3xl font-semibold sm:text-4xl' : 'text-2xl-bold'"
+				>
+					{{ isPureStudent ? __('Welcome back') : __('Hey') }},
+					{{ user.data?.full_name }}<span v-if="!isPureStudent"> 👋</span>
 				</h1>
 				<div>
 					<button
@@ -55,12 +66,14 @@ import { sessionStore } from '@/stores/session'
 import StudentHome from '@/pages/Home/StudentHome.vue'
 import AdminHome from '@/pages/Home/AdminHome.vue'
 import Streak from '@/pages/Home/Streak.vue'
+import { usePureStudent } from '@/composables/useStudentExperience'
 
 const user = inject<any>('$user')
 const { brand } = sessionStore()
 const evalCount = ref(0)
 const currentTab = ref<'student' | 'instructor'>('student')
 const showStreakModal = ref(false)
+const isPureStudent = usePureStudent()
 
 const fetchEvalCount = () => {
 	call('frappe.client.get_count', {
@@ -79,7 +92,8 @@ const isAdmin = computed(() => {
 	return (
 		user.data?.is_moderator ||
 		user.data?.is_instructor ||
-		user.data?.is_evaluator
+		user.data?.is_evaluator ||
+		user.data?.is_system_manager
 	)
 })
 
@@ -169,7 +183,9 @@ const subtitle = computed(() => {
 				evalSuffix
 			)
 		}
-		return __('Resume where you left off')
+		return isPureStudent.value
+			? __('A clear view of your next learning step.')
+			: __('Resume where you left off')
 	}
 })
 
