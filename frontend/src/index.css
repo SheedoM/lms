@@ -2,83 +2,120 @@
 @import 'frappe-ui/list-style.css';
 @import './styles/blockEditor.css';
 
-:root {
-	--ft-nav: #05131a;
-	--ft-nav-raised: #071b24;
-	--ft-primary: #9cff45;
-	--ft-canvas: #f6f1e8;
-	--ft-surface: #fffaf2;
-	--ft-muted: #61737b;
-	--ft-ink: #10252d;
-	--ft-border: rgba(5, 19, 26, 0.12);
+:root,
+[data-theme='light'] {
+	--ft-nav: #082a36;
+	--ft-nav-raised: #0b3643;
+	--ft-primary: #22a06b;
+	--ft-primary-strong: #16855a;
+	--ft-accent: #7fd34e;
+	--ft-canvas: #f7faf9;
+	--ft-surface: #ffffff;
+	--ft-muted: #61777f;
+	--ft-ink: #102f3b;
+	--ft-border: rgba(16, 47, 59, 0.13);
+
+	--surface-base: #ffffff;
+	--surface-sidebar: #f4f8f7;
+	--surface-gray-1: #f7faf9;
+	--surface-gray-2: #edf4f1;
+	--surface-gray-3: #e2ece8;
+	--surface-gray-4: #d4e2dd;
+	--surface-gray-7: #16855a;
+	--surface-gray-8: #116b49;
+	--surface-elevation-1: #ffffff;
+	--surface-elevation-2: #ffffff;
+	--surface-elevation-3: #e7f4ed;
+	--outline-gray-1: #e4ece9;
+	--outline-gray-2: #d5e2dd;
+	--outline-gray-3: #8eb8a8;
+	--ink-gray-9: #102f3b;
+	--ink-gray-8: #1d3d48;
+	--ink-gray-7: #49636c;
+	--ink-gray-6: #61777f;
+	--ink-gray-5: #748991;
 }
 
 [data-theme='dark'] {
-	--ft-nav: #05131a;
-	--ft-nav-raised: #071b24;
-	--ft-primary: #9cff45;
-	--ft-canvas: #071b24;
-	--ft-surface: #0c2732;
-	--ft-muted: #aebcc2;
-	--ft-ink: #eef4f1;
-	--ft-border: rgba(174, 188, 194, 0.18);
+	--ft-nav: #061c25;
+	--ft-nav-raised: #0a2b36;
+	--ft-primary: #51c58d;
+	--ft-primary-strong: #35aa75;
+	--ft-accent: #91dc61;
+	--ft-canvas: #071c24;
+	--ft-surface: #0b2731;
+	--ft-muted: #a9bbc1;
+	--ft-ink: #eef6f3;
+	--ft-border: rgba(199, 220, 214, 0.18);
+	--surface-sidebar: #081f28;
+	--surface-elevation-3: #12362f;
+	--outline-gray-3: #3d7f68;
 }
 
-.ft-student-experience {
-	--surface-base: var(--ft-canvas);
-	--surface-sidebar: var(--ft-nav);
-	--surface-elevation-1: var(--ft-surface);
-	--surface-elevation-2: color-mix(in srgb, var(--ft-surface) 90%, white 10%);
-	--outline-gray-2: var(--ft-border);
-	--ink-gray-9: var(--ft-ink);
-	--ink-gray-7: var(--ft-muted);
-	--ink-gray-5: var(--ft-muted);
+html,
+body,
+#app {
+	min-height: 100%;
+	background: var(--ft-canvas);
+}
+
+body {
 	font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', system-ui, -apple-system,
 		'Segoe UI', sans-serif;
+	color: var(--ft-ink);
 }
 
-.ft-display,
-.ft-student-experience h1,
-.ft-student-experience h2,
-.ft-student-experience h3 {
+h1,
+h2,
+h3,
+.text-2xl-bold {
 	font-family: Alexandria, 'IBM Plex Sans Arabic', system-ui, sans-serif;
 }
 
-.ft-student-nav {
-	background:
-		linear-gradient(145deg, rgba(156, 255, 69, 0.04), transparent 38%),
-		var(--ft-nav);
+/* Keep Frappe's layout and interaction patterns while applying the product
+   identity through its existing surface and ink tokens. */
+.bg-surface-sidebar {
+	background-image: linear-gradient(
+		180deg,
+		rgba(34, 160, 107, 0.045),
+		transparent 12rem
+	);
+}
+
+.bg-surface-sidebar,
+.border-e.bg-surface-sidebar {
+	border-color: var(--ft-border);
 }
 
 .ft-brand-mark {
-	border: 1px solid rgba(156, 255, 69, 0.45);
-	background: rgba(156, 255, 69, 0.1);
-	color: var(--ft-primary);
+	border: 1px solid color-mix(in srgb, var(--ft-primary) 48%, transparent);
+	background: color-mix(in srgb, var(--ft-primary) 12%, transparent);
+	color: var(--ft-primary-strong);
 	font-family: Alexandria, system-ui, sans-serif;
 	font-size: 0.75rem;
 	font-weight: 700;
 	letter-spacing: -0.04em;
 }
 
+.ft-coding-lab-icon {
+	border: 1px solid color-mix(in srgb, var(--ft-primary) 25%, transparent);
+	background: color-mix(in srgb, var(--ft-primary) 10%, transparent);
+	color: var(--ft-primary-strong);
+}
+
 .ft-panel {
-	border: 0;
-	background: transparent;
-	box-shadow: none;
+	border: 1px solid var(--ft-border);
+	background: var(--ft-surface);
+	box-shadow: 0 10px 30px rgba(8, 42, 54, 0.05);
 }
 
 .ft-primary-button {
 	background: var(--ft-primary);
-	color: #05131a;
+	color: #ffffff;
 }
 
 .ft-primary-button:hover {
-	background: #88e93a;
-}
-
-/* This build makes --surface-sidebar transparent in dark mode; point it at
-   gray-1 so the sidebar keeps a visible surface. */
-[data-theme='dark'] {
-	--surface-sidebar: var(--surface-gray-1);
+	background: var(--ft-primary-strong);
 }
 
 /* frappe-ui beta.7 FormLabel differs from InputLabel; match standalone labels
