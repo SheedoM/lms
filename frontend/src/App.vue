@@ -20,13 +20,10 @@ import MobileLayout from './components/Layouts/MobileLayout.vue'
 import NoSidebarLayout from './components/Layouts/NoSidebarLayout.vue'
 import InstallPrompt from './components/InstallPrompt.vue'
 import NotificationPanel from '@/components/Notifications/NotificationPanel.vue'
-import StudentLayout from './components/Layouts/StudentLayout.vue'
-import { usePureStudent } from '@/composables/useStudentExperience'
 
 const { isMobile } = useScreenSize()
 const route = useRoute()
 const { settings } = useSettings()
-const isPureStudent = usePureStudent()
 
 // Derive the layout from the current route, not a navigation guard. Flipping it
 // in beforeEach swaps the layout the instant a navigation starts — before a lazy
@@ -40,9 +37,6 @@ const noSidebar = computed(
 const Layout = computed(() => {
 	if (noSidebar.value) {
 		return NoSidebarLayout
-	}
-	if (isPureStudent.value) {
-		return StudentLayout
 	}
 	if (isMobile.value) {
 		return MobileLayout
