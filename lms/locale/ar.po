@@ -4669,6 +4669,10 @@ msgstr ""
 msgid "Learning"
 msgstr ""
 
+#: frontend/src/components/Student/StudentBrand.vue:21
+msgid "Learning system"
+msgstr "نظام التعلم"
+
 #: frontend/src/pages/Home/Streak.vue:2
 msgid "Learning Consistency"
 msgstr ""

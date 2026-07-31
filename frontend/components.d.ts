@@ -156,7 +156,6 @@ declare module 'vue' {
     StudentAssessmentRow: typeof import('./src/components/Student/StudentAssessmentRow.vue')['default']
     StudentBrand: typeof import('./src/components/Student/StudentBrand.vue')['default']
     StudentCourseSection: typeof import('./src/components/Student/StudentCourseSection.vue')['default']
-    StudentLanguageToggle: typeof import('./src/components/Student/StudentLanguageToggle.vue')['default']
     StudentLayout: typeof import('./src/components/Layouts/StudentLayout.vue')['default']
     StudentLessonSidebar: typeof import('./src/components/StudentLessonSidebar.vue')['default']
     StudentModal: typeof import('./src/components/Modals/StudentModal.vue')['default']

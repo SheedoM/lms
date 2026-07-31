@@ -5,7 +5,7 @@
 		dir="ltr"
 		lang="en"
 	>
-		<header class="coding-lab-workspace-header">
+		<header v-if="showHeader" class="coding-lab-workspace-header">
 			<div class="coding-lab-heading min-w-0">
 				<strong class="truncate">{{ activeLab.title }}</strong>
 				<span class="coding-lab-mode-badge">{{ modeLabel(activeLab) }}</span>
@@ -133,10 +133,13 @@
 					}}</strong>
 					<button
 						type="button"
-						class="coding-lab-button coding-lab-button--quiet"
+						class="coding-lab-button coding-lab-button--icon"
+						:aria-label="`Hide ${consoleLabel}`"
+						:title="`Hide ${consoleLabel}`"
+						aria-expanded="true"
 						@click="toggleConsole"
 					>
-						Hide
+						<ChevronDown aria-hidden="true" />
 					</button>
 				</div>
 				<pre aria-live="polite">{{ consoleLines.join('\n') }}</pre>
@@ -162,9 +165,13 @@
 				v-else
 				type="button"
 				class="coding-lab-console-collapsed"
+				:aria-label="`Show ${consoleLabel}`"
+				:title="`Show ${consoleLabel}`"
+				aria-expanded="false"
 				@click="toggleConsole"
 			>
-				{{ activeLab.lab_kind === 'python' ? 'Terminal' : 'Console' }}
+				<strong>{{ consoleLabel }}</strong>
+				<ChevronUp aria-hidden="true" />
 			</button>
 		</div>
 	</section>
@@ -172,6 +179,7 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { ChevronDown, ChevronUp } from 'lucide-vue-next'
 import CodingLabEditor from '@/components/CodingLabEditor.vue'
 import { modeLabel } from '@/utils/codingLab/schema'
 import {
@@ -191,7 +199,9 @@ const props = defineProps({
 	activeLab: { type: Object, required: true },
 	context: { type: Object, required: true },
 	showClose: { type: Boolean, default: true },
+	showHeader: { type: Boolean, default: true },
 	confirmReset: { type: Boolean, default: false },
+	initialConsoleHeight: { type: Number, default: null },
 })
 defineEmits(['close', 'switch'])
 
@@ -244,6 +254,9 @@ const isFilePane = computed(() => Object.hasOwn(FILE_LABELS, activePane.value))
 const safeInstructions = computed(() =>
 	sanitizeRichHTML(props.activeLab.instructions || '')
 )
+const consoleLabel = computed(() =>
+	props.activeLab.lab_kind === 'python' ? 'Terminal' : 'Console'
+)
 
 function createState(lab) {
 	const loaded = loadLabState(
@@ -261,8 +274,12 @@ function createState(lab) {
 				? loaded.consoleOpen
 				: lab.ui.console_open,
 		consoleHeight: clampConsole(
-			loaded.consoleHeight ?? lab.ui.console_height
+			props.initialConsoleHeight !== null &&
+				loaded.consoleHeightCustomized !== true
+				? props.initialConsoleHeight
+				: loaded.consoleHeight ?? lab.ui.console_height
 		),
+		consoleHeightCustomized: loaded.consoleHeightCustomized === true,
 	}
 }
 
@@ -290,6 +307,7 @@ function snapshotState() {
 		starterUpdated: state.value.starterUpdated,
 		consoleOpen: state.value.consoleOpen,
 		consoleHeight: state.value.consoleHeight,
+		consoleHeightCustomized: state.value.consoleHeightCustomized,
 	}
 }
 
@@ -313,7 +331,9 @@ function reset() {
 		props.activeLab.starter_revision
 	)
 	state.value.consoleOpen = props.activeLab.ui.console_open
-	state.value.consoleHeight = props.activeLab.ui.console_height
+	state.value.consoleHeight =
+		props.initialConsoleHeight ?? props.activeLab.ui.console_height
+	state.value.consoleHeightCustomized = false
 	consoleLines.value = []
 	if (activePane.value === 'preview') nextTick(runWeb)
 }
@@ -465,6 +485,7 @@ function resizeConsole(event) {
 	state.value.consoleHeight = clampConsole(
 		consoleResizeStart.height + consoleResizeStart.y - event.clientY
 	)
+	state.value.consoleHeightCustomized = true
 }
 
 function stopConsoleResize() {
@@ -479,6 +500,7 @@ function resizeConsoleByKeyboard(event) {
 	state.value.consoleHeight = clampConsole(
 		state.value.consoleHeight + (event.key === 'ArrowUp' ? 20 : -20)
 	)
+	state.value.consoleHeightCustomized = true
 	persist()
 }
 
@@ -508,6 +530,7 @@ watch(
 				starterUpdated: state.value.starterUpdated,
 				consoleOpen: state.value.consoleOpen,
 				consoleHeight: state.value.consoleHeight,
+				consoleHeightCustomized: state.value.consoleHeightCustomized,
 			}
 			states.set(`${oldBlockId}:${oldRevision}`, previous)
 			saveLabState(

@@ -18,7 +18,7 @@
 				Faragallah Tech
 			</div>
 			<div class="truncate text-[10px] uppercase tracking-[0.18em] text-[#aebcc2]">
-				Learning systems
+				{{ __('Learning system') }}
 			</div>
 		</div>
 	</div>

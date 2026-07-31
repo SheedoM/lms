@@ -1,18 +1,16 @@
 <template>
 	<div
-		class="mx-auto flex h-full w-full max-w-[1500px] flex-col px-4 py-5 sm:px-7"
+		class="flex h-full min-h-0 w-full flex-col p-3 sm:p-4"
 		dir="ltr"
 		lang="en"
 	>
-		<div class="mb-4 flex flex-wrap items-end justify-between gap-4">
+		<div class="mb-3 flex shrink-0 flex-wrap items-end justify-between gap-3">
 			<div>
 				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ft-muted)]">
 					Free workspace
 				</p>
-				<h1 class="mt-1 text-2xl font-semibold sm:text-3xl">Coding Lab</h1>
-				<p class="mt-1 text-sm text-[var(--ft-muted)]">
-					Experiment freely. Your drafts stay on this device.
-				</p>
+				<h1 class="mt-0.5 text-2xl font-semibold">Coding Lab</h1>
+				<p class="text-sm text-[var(--ft-muted)]">Experiment freely.</p>
 			</div>
 			<div
 				class="inline-flex rounded-xl border border-[var(--ft-border)] bg-[var(--ft-surface)] p-1"
@@ -42,7 +40,9 @@
 				:active-lab="activeLab"
 				:context="context"
 				:show-close="false"
+				:show-header="false"
 				:confirm-reset="true"
+				:initial-console-height="120"
 			/>
 		</div>
 	</div>

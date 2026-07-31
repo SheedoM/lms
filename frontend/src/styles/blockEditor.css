@@ -658,11 +658,29 @@ iframe {
 	color: #f8fafc;
 }
 
+.coding-lab-button--quiet,
+.coding-lab-button--icon {
+	border-color: transparent;
+	background: transparent;
+}
+
 .coding-lab-button--quiet {
 	min-height: 24px;
 	padding: 0.15rem 0.45rem;
-	border-color: transparent;
-	background: transparent;
+}
+
+.coding-lab-button--icon {
+	display: inline-grid;
+	width: 28px;
+	min-height: 28px;
+	padding: 0;
+	place-items: center;
+}
+
+.coding-lab-button--icon svg,
+.coding-lab-console-collapsed svg {
+	width: 16px;
+	height: 16px;
 }
 
 .coding-lab-ace-editor {
@@ -934,6 +952,9 @@ iframe {
 }
 
 .coding-lab-console-collapsed {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 	min-height: 34px;
 	flex: none;
 	border: 0;
@@ -948,6 +969,9 @@ iframe {
 }
 
 .coding-lab-standalone-shell {
+	display: flex;
+	min-height: 0;
+	flex: 1 1 auto;
 	overflow: hidden;
 	border: 1px solid #263244;
 	border-radius: 14px;
@@ -956,7 +980,8 @@ iframe {
 
 .coding-lab-standalone-shell .coding-lab-workspace {
 	height: 100%;
-	min-height: 560px;
+	min-height: 0;
+	flex: 1 1 auto;
 }
 
 .coding-lab-starter-notice {
