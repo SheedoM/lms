@@ -1,4 +1,5 @@
 export const STUDENT_ONLY_ROUTE_NAMES = [
+	'StudentCodingLab',
 	'StudentAssessments',
 	'StudentNotifications',
 	'StudentAccount',
@@ -18,6 +19,13 @@ export const STUDENT_NAV_ITEMS = [
 		icon: 'BookOpen',
 		to: 'Courses',
 		activeFor: ['Courses', 'CourseDetail', 'Lesson', 'SCORMChapter'],
+	},
+	{
+		label: 'Coding Lab',
+		labelAr: 'Coding Lab',
+		icon: 'Code2',
+		to: 'StudentCodingLab',
+		activeFor: ['StudentCodingLab'],
 	},
 	{
 		label: 'Assessments',
@@ -93,7 +101,7 @@ export function getStudentNavigationMode({
 	focusMode?: boolean
 }): StudentNavigationMode {
 	if (width < 640) return 'bottom'
-	if (focusMode) return 'rail'
+	if (focusMode) return temporaryExpanded ? 'overlay' : 'rail'
 
 	if (width >= 1440) return 'expanded'
 	if (width >= 1024) {

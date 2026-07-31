@@ -1,4 +1,4 @@
-export const CODING_LAB_SCHEMA_VERSION = 3
+export const CODING_LAB_SCHEMA_VERSION = 4
 export const CODING_LAB_BLOCK_TYPES = new Set(['codingLab', 'coding_lab'])
 export const WEB_FILE_KEYS = ['html', 'css', 'javascript']
 export const LAB_KINDS = ['web', 'python']
@@ -27,7 +27,6 @@ export function legacyLabKind(data = {}) {
 export function normalizeCodingLab(data = {}, fallbackId) {
 	const source = data && typeof data === 'object' ? data : {}
 	const starter = source.starter_files || source.starter_code || {}
-	const tests = source.test_code
 	const labKind = legacyLabKind(source)
 	const legacyType = source.lab_type || source.default_mode
 
@@ -57,22 +56,14 @@ export function normalizeCodingLab(data = {}, fallbackId) {
 			? source.starter_code
 			: '')
 
-	let testCode = ''
-	if (typeof tests === 'string') testCode = tests
-	else if (tests && typeof tests === 'object') {
-		testCode = toString(labKind === 'python' ? tests.python : tests.web || tests.js)
-	}
-	if (!testCode) testCode = toString(source.local_test_code)
-
-	return {
+	const normalized = {
 		schema_version: CODING_LAB_SCHEMA_VERSION,
 		block_id: toString(source.block_id || fallbackId) || createBlockId(),
-		title: toString(source.title) || __('Untitled Coding Lab'),
+		title: toString(source.title) || 'Untitled Coding Lab',
 		instructions: toString(source.instructions || source.task),
 		lab_kind: labKind,
 		enabled_web_files: labKind === 'web' ? enabledWebFiles : [],
 		starter_files: starterFiles,
-		test_code: testCode,
 		ui: {
 			default_file:
 				toString(source.ui?.default_file) ||
@@ -81,6 +72,33 @@ export function normalizeCodingLab(data = {}, fallbackId) {
 			console_height: clampNumber(source.ui?.console_height, 100, 420, 180),
 		},
 	}
+	normalized.starter_revision = starterRevision(normalized)
+	return normalized
+}
+
+export function starterRevision(lab) {
+	const files = lab?.starter_files || {}
+	const payload = JSON.stringify({
+		lab_kind: lab?.lab_kind === 'python' ? 'python' : 'web',
+		enabled_web_files:
+			lab?.lab_kind === 'python'
+				? []
+				: WEB_FILE_KEYS.filter((file) =>
+					(lab?.enabled_web_files || []).includes(file)
+				),
+		starter_files: {
+			html: toString(files.html),
+			css: toString(files.css),
+			javascript: toString(files.javascript || files.js),
+			python: toString(files.python),
+		},
+	})
+	let hash = 2166136261
+	for (let index = 0; index < payload.length; index += 1) {
+		hash ^= payload.charCodeAt(index)
+		hash = Math.imul(hash, 16777619)
+	}
+	return `starter-${(hash >>> 0).toString(16).padStart(8, '0')}`
 }
 
 export function serializeCodingLab(data, fallbackId) {
@@ -121,10 +139,10 @@ export function extractCodingLabs(content) {
 }
 
 export function modeLabel(lab) {
-	if (lab.lab_kind === 'python') return __('Python')
+	if (lab.lab_kind === 'python') return 'Python'
 	const files = lab.enabled_web_files || []
-	if (files.length === 1 && files[0] === 'javascript') return __('JavaScript')
-	return __('Web')
+	if (files.length === 1 && files[0] === 'javascript') return 'JavaScript'
+	return 'Web'
 }
 
 export function instructionsSummary(value, maxLength = 180) {

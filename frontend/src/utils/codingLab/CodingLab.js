@@ -13,7 +13,7 @@ import {
 	isCodingLabMessage,
 	pyodideWorkerSource,
 } from './runtime'
-import { formatRuntimeError } from './errorHelp'
+import { createCodingLabAceEditor } from './aceEditor'
 
 const FILE_LABELS = {
 	html: 'index.html',
@@ -38,6 +38,10 @@ export class CodingLab {
 		this.channel = `coding-lab-${Math.random().toString(36).slice(2)}`
 		this.wrapper = document.createElement('div')
 		this.wrapper.className = 'coding-lab-block'
+		this.wrapper.dir = 'ltr'
+		this.wrapper.lang = 'en'
+		this.codeEditors = new Map()
+		this.pythonInputs = []
 		this.handleMessage = this.handleMessage.bind(this)
 		window.addEventListener('message', this.handleMessage)
 	}
@@ -50,6 +54,7 @@ export class CodingLab {
 		return {
 			schema_version: false,
 			block_id: false,
+			starter_revision: false,
 			title: false,
 			instructions: false,
 			task: false,
@@ -58,8 +63,6 @@ export class CodingLab {
 			enabled_web_files: false,
 			starter_files: false,
 			starter_code: false,
-			test_code: false,
-			local_test_code: false,
 			ui: false,
 			coding_lab: false,
 		}
@@ -70,7 +73,7 @@ export class CodingLab {
 		createApp({ render: () => h(Code2, { size: 18, strokeWidth: 1.5 }) }).mount(
 			host
 		)
-		return { title: __('Coding Lab'), icon: host.innerHTML }
+		return { title: 'Coding Lab', icon: host.innerHTML }
 	}
 
 	render() {
@@ -81,20 +84,21 @@ export class CodingLab {
 	}
 
 	renderKindPicker() {
+		this.destroyEditors()
 		this.wrapper.replaceChildren()
 		const card = this.element('div', 'coding-lab-kind-picker')
 		card.append(
-			this.element('strong', '', __('Choose a Coding Lab')),
+			this.element('strong', '', 'Choose a Coding Lab'),
 			this.element(
 				'p',
 				'coding-lab-muted',
-				__('Start with a Web or Python workspace.')
+				'Start with a Web or Python workspace.'
 			)
 		)
 		const actions = this.element('div', 'coding-lab-kind-actions')
 		for (const [kind, label, help] of [
-			['web', __('Web'), __('HTML, CSS and JavaScript')],
-			['python', __('Python'), __('Python code and local tests')],
+			['web', 'Web', 'HTML, CSS and JavaScript'],
+			['python', 'Python', 'Python editor and terminal'],
 		]) {
 			const button = this.element('button', 'coding-lab-kind-button')
 			button.type = 'button'
@@ -117,11 +121,12 @@ export class CodingLab {
 
 	renderAuthoring() {
 		this.stopPython()
+		this.destroyEditors()
 		this.wrapper.replaceChildren()
 		const header = this.element('div', 'coding-lab-author-header')
 		const heading = this.element('div', 'coding-lab-heading')
 		heading.append(
-			this.element('strong', '', __('Coding Lab')),
+			this.element('strong', '', 'Coding Lab'),
 			this.element('span', 'coding-lab-mode-badge', modeLabel(this.draft))
 		)
 		header.append(heading)
@@ -130,24 +135,25 @@ export class CodingLab {
 		const terminal = this.element('div', 'coding-lab-author-terminal')
 		const taskGrid = this.element('div', 'coding-lab-author-task-grid')
 		taskGrid.append(
-			this.field(__('Title'), 'title', this.draft.title),
+			this.field('Title', 'title', this.draft.title),
 			this.field(
-				__('Task / instructions'),
+				'Task / instructions',
 				'instructions',
 				this.draft.instructions,
 				true
 			)
 		)
 		terminal.append(taskGrid)
-
-		if (this.draft.lab_kind === 'web') {
+		if (this.draft.lab_kind === 'web')
 			terminal.append(this.renderWebFilePicker())
-		}
 		terminal.append(this.renderIde())
 		this.wrapper.append(terminal)
+		queueMicrotask(() =>
+			this.codeEditors.forEach((editor) => editor.resize())
+		)
 
 		const footer = this.element('div', 'coding-lab-author-footer')
-		const save = this.button(__('Save IDE'), 'primary')
+		const save = this.button('Save IDE', 'primary')
 		save.dataset.role = 'save-ide'
 		save.addEventListener('click', () => this.saveIde())
 		const status = this.element('span', 'coding-lab-save-status')
@@ -159,8 +165,7 @@ export class CodingLab {
 
 	renderWebFilePicker() {
 		const wrapper = this.element('fieldset', 'coding-lab-web-files')
-		const legend = this.element('legend', '', __('Files'))
-		wrapper.append(legend)
+		wrapper.append(this.element('legend', '', 'Files'))
 		WEB_FILE_KEYS.forEach((file) => {
 			const label = this.element('label', 'coding-lab-file-check')
 			const input = document.createElement('input')
@@ -169,16 +174,15 @@ export class CodingLab {
 			input.checked = this.draft.enabled_web_files.includes(file)
 			input.dataset.webFile = file
 			input.addEventListener('change', () => {
-				const checked = this.wrapper.querySelectorAll(
-					'[data-web-file]:checked'
-				)
-				if (!checked.length) {
+				if (
+					!this.wrapper.querySelectorAll('[data-web-file]:checked').length
+				) {
 					input.checked = true
 					return
 				}
 				this.syncDraftFromFields()
 				this.renderAuthoring()
-				this.setStatus(__('Unsaved changes'), 'dirty')
+				this.setStatus('Unsaved changes', 'dirty')
 			})
 			label.append(input, FILE_LABELS[file])
 			wrapper.append(label)
@@ -206,65 +210,136 @@ export class CodingLab {
 			tabs.append(tab)
 		})
 		const actions = this.element('div', 'coding-lab-ide-actions')
-		const run = this.button(__('Run'))
-		run.addEventListener('click', () => this.run(false))
-		const check = this.button(__('Check Solution'))
-		check.addEventListener('click', () => this.run(true))
-		actions.append(run, check)
-		if (this.draft.lab_kind === 'python') {
-			const stop = this.button(__('Stop'))
-			stop.addEventListener('click', () => this.stopPython(true))
-			actions.append(stop)
-		}
+		const run = this.button('Run', 'primary')
+		run.addEventListener('click', () => this.run())
+		actions.append(run)
+		const stop = this.button('Stop')
+		stop.addEventListener('click', () => this.stopRuntime(true))
+		actions.append(stop)
 		topbar.append(tabs, actions)
 		ide.append(topbar)
 
 		files.forEach((file) => {
-			const editor = document.createElement('textarea')
-			editor.className = 'coding-lab-code-editor'
-			editor.classList.toggle('is-active', file === active)
-			editor.dataset.codeFile = file
-			editor.value = this.draft.starter_files[file] || ''
-			editor.spellcheck = false
-			editor.setAttribute('aria-label', FILE_LABELS[file])
-			editor.addEventListener('input', () =>
-				this.setStatus(__('Unsaved changes'), 'dirty')
-			)
-			ide.append(editor)
+			const host = this.element('div', 'coding-lab-ace-editor')
+			host.classList.toggle('is-active', file === active)
+			host.dataset.codeFile = file
+			host.setAttribute('aria-label', FILE_LABELS[file])
+			ide.append(host)
+			const editor = createCodingLabAceEditor(host, {
+				value: this.draft.starter_files[file] || '',
+				language: file,
+				onChange: (value) => {
+					this.draft.starter_files[file] = value
+					this.setStatus('Unsaved changes', 'dirty')
+				},
+			})
+			this.codeEditors.set(file, editor)
 		})
 
-		const tests = this.field(
-			__('Local tests (optional)'),
-			'test_code',
-			this.draft.test_code,
-			true,
-			true
-		)
-		tests.classList.add('coding-lab-tests-editor')
-		ide.append(tests)
-		const output = this.element('div', 'coding-lab-console')
-		output.dataset.role = 'console'
-		output.append(
-			this.element('strong', 'coding-lab-console-title', __('Console / Tests'))
-		)
-		const pre = document.createElement('pre')
-		pre.dataset.role = 'console-output'
-		pre.setAttribute('aria-live', 'polite')
-		output.append(pre)
-		ide.append(output)
-
+		const javaScriptOnly =
+			this.draft.lab_kind === 'web' &&
+			files.length === 1 &&
+			files[0] === 'javascript'
 		if (this.draft.lab_kind === 'web') {
 			const preview = document.createElement('iframe')
 			preview.className = 'coding-lab-author-preview'
+			if (javaScriptOnly) preview.classList.add('hidden')
 			preview.dataset.role = 'preview'
 			preview.sandbox = 'allow-scripts'
-			preview.title = __('Coding Lab preview')
+			preview.title = 'Coding Lab preview'
 			ide.append(preview)
 		}
+
+		const output = this.element(
+			'section',
+			'coding-lab-console coding-lab-author-console'
+		)
+		output.dataset.role = 'console'
+		output.classList.toggle('is-collapsed', !this.draft.ui.console_open)
+		output.style.height = this.draft.ui.console_open
+			? `${this.draft.ui.console_height}px`
+			: ''
+		const resizer = this.element('div', 'coding-lab-console-resizer')
+		resizer.hidden = !this.draft.ui.console_open
+		resizer.tabIndex = 0
+		resizer.setAttribute('role', 'separator')
+		resizer.setAttribute('aria-orientation', 'horizontal')
+		resizer.setAttribute('aria-label', 'Resize Console')
+		const setConsoleHeight = (height) => {
+			this.draft.ui.console_height = Math.min(
+				420,
+				Math.max(100, Number(height) || 180)
+			)
+			output.style.height = `${this.draft.ui.console_height}px`
+			this.setStatus('Unsaved changes', 'dirty')
+		}
+		resizer.addEventListener('pointerdown', (event) => {
+			const startY = event.clientY
+			const startHeight = this.draft.ui.console_height
+			const resize = (moveEvent) =>
+				setConsoleHeight(startHeight + startY - moveEvent.clientY)
+			const stop = () => {
+				window.removeEventListener('pointermove', resize)
+				window.removeEventListener('pointerup', stop)
+			}
+			window.addEventListener('pointermove', resize)
+			window.addEventListener('pointerup', stop)
+		})
+		resizer.addEventListener('keydown', (event) => {
+			if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return
+			event.preventDefault()
+			setConsoleHeight(
+				this.draft.ui.console_height +
+					(event.key === 'ArrowUp' ? 20 : -20)
+			)
+		})
+		const titlebar = this.element('div', 'coding-lab-console-titlebar')
+		titlebar.append(
+			this.element(
+				'strong',
+				'coding-lab-console-title',
+				this.draft.lab_kind === 'python' ? 'Terminal' : 'Console'
+			)
+		)
+		const hide = this.button('Hide', 'quiet')
+		hide.addEventListener('click', () => {
+			output.classList.toggle('is-collapsed')
+			this.draft.ui.console_open =
+				!output.classList.contains('is-collapsed')
+			resizer.hidden = !this.draft.ui.console_open
+			output.style.height = this.draft.ui.console_open
+				? `${this.draft.ui.console_height}px`
+				: ''
+			hide.textContent = this.draft.ui.console_open ? 'Hide' : 'Show'
+			this.setStatus('Unsaved changes', 'dirty')
+		})
+		hide.textContent = this.draft.ui.console_open ? 'Hide' : 'Show'
+		titlebar.append(hide)
+		const pre = document.createElement('pre')
+		pre.dataset.role = 'console-output'
+		pre.setAttribute('aria-live', 'polite')
+		const inputForm = this.element('form', 'coding-lab-stdin hidden')
+		inputForm.dataset.role = 'stdin-form'
+		const prompt = this.element('label')
+		prompt.dataset.role = 'stdin-prompt'
+		const input = document.createElement('input')
+		input.type = 'text'
+		input.autocomplete = 'off'
+		input.spellcheck = false
+		input.dataset.role = 'stdin-input'
+		const submit = this.button('Enter', 'primary')
+		submit.type = 'submit'
+		inputForm.append(prompt, input, submit)
+		inputForm.addEventListener('submit', (event) => {
+			event.preventDefault()
+			this.submitPythonInput(input.value)
+		})
+		output.append(titlebar, pre, inputForm)
+		ide.append(resizer, output)
 		return ide
 	}
 
-	field(labelText, name, value, multiline = false, code = false) {
+	field(labelText, name, value, multiline = false) {
 		const label = this.element('label', 'coding-lab-terminal-field')
 		label.append(this.element('span', '', labelText))
 		const input = multiline
@@ -272,10 +347,8 @@ export class CodingLab {
 			: document.createElement('input')
 		input.dataset.field = name
 		input.value = value || ''
-		input.spellcheck = !code
-		if (code) input.classList.add('is-code')
 		input.addEventListener('input', () =>
-			this.setStatus(__('Unsaved changes'), 'dirty')
+			this.setStatus('Unsaved changes', 'dirty')
 		)
 		label.append(input)
 		return label
@@ -285,11 +358,11 @@ export class CodingLab {
 		if (!this.draft) return
 		const value = (selector) =>
 			this.wrapper.querySelector(selector)?.value ?? ''
-		this.draft.title = value('[data-field="title"]') || __('Untitled Coding Lab')
+		this.draft.title =
+			value('[data-field="title"]') || 'Untitled Coding Lab'
 		this.draft.instructions = value('[data-field="instructions"]')
-		this.draft.test_code = value('[data-field="test_code"]')
-		this.wrapper.querySelectorAll('[data-code-file]').forEach((editor) => {
-			this.draft.starter_files[editor.dataset.codeFile] = editor.value
+		this.codeEditors.forEach((editor, file) => {
+			this.draft.starter_files[file] = editor.getValue()
 		})
 		if (this.draft.lab_kind === 'web') {
 			this.draft.enabled_web_files = Array.from(
@@ -303,9 +376,12 @@ export class CodingLab {
 		this.wrapper.querySelectorAll('[data-tab]').forEach((tab) => {
 			tab.classList.toggle('is-active', tab.dataset.tab === file)
 		})
-		this.wrapper.querySelectorAll('[data-code-file]').forEach((editor) => {
-			editor.classList.toggle('is-active', editor.dataset.codeFile === file)
+		this.wrapper.querySelectorAll('[data-code-file]').forEach((host) => {
+			host.classList.toggle('is-active', host.dataset.codeFile === file)
 		})
+		const editor = this.codeEditors.get(file)
+		editor?.resize()
+		editor?.focus()
 	}
 
 	requestLessonSave(commit) {
@@ -325,7 +401,7 @@ export class CodingLab {
 				})
 			)
 			if (!detail.handled)
-				reject(new Error(__('Course Lesson save handler is unavailable.')))
+				reject(new Error('Course Lesson save handler is unavailable.'))
 		})
 	}
 
@@ -334,20 +410,21 @@ export class CodingLab {
 		this.saving = true
 		const button = this.wrapper.querySelector('[data-role="save-ide"]')
 		if (button) button.disabled = true
-		this.setStatus(__('Saving…'), 'saving')
+		this.setStatus('Saving…', 'saving')
 		const previous = this.data
 		try {
 			this.syncDraftFromFields()
 			const next = serializeCodingLab(this.draft, this.blockId)
 			await this.requestLessonSave(() => {
 				this.data = next
+				this.draft = serializeCodingLab(next, this.blockId)
 				this.block?.dispatchChange?.()
 			})
-			this.setStatus(__('Saved'), 'saved')
+			this.setStatus('Saved', 'saved')
 		} catch (error) {
 			this.data = previous
 			console.error('[Coding Lab] Save IDE failed', error)
-			this.setStatus(__('Error saving IDE'), 'error')
+			this.setStatus('Error saving IDE', 'error')
 		} finally {
 			this.saving = false
 			if (button) button.disabled = false
@@ -361,63 +438,114 @@ export class CodingLab {
 		status.dataset.state = state
 	}
 
-	run(runTests) {
+	run() {
 		this.syncDraftFromFields()
 		this.clearOutput()
-		if (this.draft.lab_kind === 'python') this.runPython(runTests)
-		else this.runWeb(runTests)
+		if (this.draft.lab_kind === 'python') this.runPython()
+		else this.runWeb()
 	}
 
-	runWeb(runTests) {
+	runWeb() {
 		const frame = this.wrapper.querySelector('[data-role="preview"]')
 		if (!frame) return
 		const files = this.draft.starter_files
+		this.channel = `coding-lab-${Math.random().toString(36).slice(2)}`
 		frame.srcdoc = buildSandboxDocument({
 			html: this.draft.enabled_web_files.includes('html') ? files.html : '',
 			css: this.draft.enabled_web_files.includes('css') ? files.css : '',
 			javascript: this.draft.enabled_web_files.includes('javascript')
 				? files.javascript
 				: '',
-			tests: this.draft.test_code,
-			runTests,
 			channel: this.channel,
 		})
 	}
 
-	runPython(runTests) {
-		this.stopPython()
+	stopWeb(showMessage = false) {
+		const frame = this.wrapper.querySelector('[data-role="preview"]')
+		this.channel = `coding-lab-${Math.random().toString(36).slice(2)}`
+		if (frame) frame.srcdoc = '<!doctype html><html><body></body></html>'
+		if (showMessage) this.appendOutput('Execution stopped.')
+	}
+
+	stopRuntime(showMessage = false) {
+		if (this.draft?.lab_kind === 'python') this.stopPython(showMessage)
+		else this.stopWeb(showMessage)
+	}
+
+	createPythonWorker() {
 		const url = URL.createObjectURL(
 			new Blob([pyodideWorkerSource()], { type: 'text/javascript' })
 		)
 		this.pythonWorkerUrl = url
 		this.pythonWorker = new Worker(url)
-		this.appendOutput(__('Starting Python…'))
-		this.pythonWorker.onmessage = ({ data }) => {
-			if (data.type === 'status') {
-				this.clearOutput()
-				this.appendOutput(__(data.message))
-				return
-			}
-			clearTimeout(this.pythonTimer)
-			if (data.type === 'error') this.appendError(data.message)
-			else {
-				this.clearOutput()
-				if (data.stdout) this.appendOutput(data.stdout.trimEnd())
-				if (data.stderr) this.appendError(data.stderr)
-				if (runTests) this.appendTestResults(data.results || [])
-				if (!data.stdout && !data.stderr && !runTests)
-					this.appendOutput(__('Code ran successfully with no output.'))
-			}
-		}
+		this.pythonWorker.onmessage = ({ data }) =>
+			this.handlePythonMessage(data)
+	}
+
+	runPython() {
+		this.stopPython()
+		this.pythonInputs = []
+		this.hidePythonInput()
+		this.appendOutput('Starting Python…')
+		this.createPythonWorker()
+		this.runPythonAttempt()
+	}
+
+	runPythonAttempt() {
+		if (!this.pythonWorker) return
+		clearTimeout(this.pythonTimer)
 		this.pythonTimer = setTimeout(() => {
 			this.stopPython()
 			this.appendError('Execution timeout: possible infinite loop.')
 		}, 20000)
 		this.pythonWorker.postMessage({
 			code: this.draft.starter_files.python,
-			tests: this.draft.test_code,
-			runTests,
+			inputs: [...this.pythonInputs],
 		})
+	}
+
+	handlePythonMessage(data) {
+		if (data.type === 'status') {
+			this.clearOutput()
+			this.appendOutput(data.message)
+			return
+		}
+		clearTimeout(this.pythonTimer)
+		this.clearOutput()
+		if (data.stdout) this.appendOutput(data.stdout.trimEnd())
+		if (data.stderr) this.appendError(data.stderr)
+		if (data.type === 'input-request') {
+			this.showPythonInput(data.prompt)
+			return
+		}
+		this.hidePythonInput()
+		if (data.type === 'error') this.appendError(data.message)
+		else if (!data.stdout && !data.stderr)
+			this.appendOutput('Code ran successfully with no output.')
+	}
+
+	showPythonInput(promptText = '') {
+		const form = this.wrapper.querySelector('[data-role="stdin-form"]')
+		const prompt = this.wrapper.querySelector('[data-role="stdin-prompt"]')
+		const input = this.wrapper.querySelector('[data-role="stdin-input"]')
+		if (!form || !prompt || !input) return
+		prompt.textContent = promptText
+		input.value = ''
+		form.classList.remove('hidden')
+		input.focus()
+	}
+
+	hidePythonInput() {
+		this.wrapper
+			.querySelector('[data-role="stdin-form"]')
+			?.classList.add('hidden')
+	}
+
+	submitPythonInput(value) {
+		if (!this.pythonWorker) return
+		this.pythonInputs.push(value)
+		this.hidePythonInput()
+		this.runPythonAttempt()
 	}
 
 	stopPython(showMessage = false) {
@@ -426,7 +554,8 @@ export class CodingLab {
 		if (this.pythonWorkerUrl) URL.revokeObjectURL(this.pythonWorkerUrl)
 		this.pythonWorkerUrl = null
 		clearTimeout(this.pythonTimer)
-		if (showMessage) this.appendOutput(__('Execution stopped.'))
+		this.hidePythonInput()
+		if (showMessage) this.appendOutput('Execution stopped.')
 	}
 
 	handleMessage(event) {
@@ -436,7 +565,6 @@ export class CodingLab {
 		if (data.type === 'console')
 			this.appendOutput(`[${data.level}] ${data.args.join(' ')}`)
 		else if (data.type === 'runtime-error') this.appendError(data.message)
-		else if (data.type === 'tests') this.appendTestResults(data.results)
 	}
 
 	clearOutput() {
@@ -450,35 +578,24 @@ export class CodingLab {
 	}
 
 	appendError(error) {
-		const formatted = formatRuntimeError(error)
-		this.appendOutput(formatted.original)
-		if (formatted.hint) this.appendOutput(formatted.hint)
-	}
-
-	appendTestResults(results) {
-		if (!results?.length) {
-			this.appendOutput(__('No tests were defined.'))
-			return
-		}
-		results.forEach((result) =>
-			this.appendOutput(
-				`${result.passed ? '✓' : '✕'} ${result.name}${
-					result.message ? ` — ${result.message}` : ''
-				}`
-			)
-		)
+		this.appendOutput(String(error?.message || error || 'Unknown runtime error'))
 	}
 
 	renderLauncher() {
+		this.destroyEditors()
 		this.wrapper.replaceChildren()
 		if (!Object.keys(this.data).length) {
-			this.wrapper.append(__('This Coding Lab is unavailable.'))
+			this.wrapper.append('This Coding Lab is unavailable.')
 			return
 		}
 		const lab = normalizeCodingLab(this.data, this.blockId)
 		const card = this.element('section', 'coding-lab-practice-card')
 		const content = this.element('div', 'coding-lab-practice-content')
-		const eyebrow = this.element('span', 'coding-lab-practice-eyebrow', __('Practice'))
+		const eyebrow = this.element(
+			'span',
+			'coding-lab-practice-eyebrow',
+			'Practice'
+		)
 		const heading = this.element('div', 'coding-lab-heading')
 		heading.append(
 			this.element('h3', '', lab.title),
@@ -488,7 +605,7 @@ export class CodingLab {
 		const summary = instructionsSummary(lab.instructions)
 		if (summary)
 			content.append(this.element('p', 'coding-lab-muted', summary))
-		const open = this.button(__('Open lab'), 'primary')
+		const open = this.button('Open lab', 'primary')
 		open.addEventListener('click', () => {
 			window.dispatchEvent(
 				new CustomEvent('lms:coding-lab-open', {
@@ -517,12 +634,18 @@ export class CodingLab {
 		return button
 	}
 
+	destroyEditors() {
+		this.codeEditors.forEach((editor) => editor.destroy())
+		this.codeEditors.clear()
+	}
+
 	save() {
 		return this.data
 	}
 
 	destroy() {
-		this.stopPython()
+		this.stopRuntime()
+		this.destroyEditors()
 		window.removeEventListener('message', this.handleMessage)
 	}
 }

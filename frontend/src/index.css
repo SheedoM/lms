@@ -60,19 +60,10 @@
 	letter-spacing: -0.04em;
 }
 
-.ft-grid {
-	background-image:
-		linear-gradient(var(--ft-border) 1px, transparent 1px),
-		linear-gradient(90deg, var(--ft-border) 1px, transparent 1px);
-	background-size: 32px 32px;
-	background-attachment: local;
-}
-
 .ft-panel {
-	border: 1px solid var(--ft-border);
-	background: color-mix(in srgb, var(--ft-surface) 94%, transparent);
-	box-shadow: 0 18px 45px rgba(5, 19, 26, 0.06);
-	backdrop-filter: blur(8px);
+	border: 0;
+	background: transparent;
+	box-shadow: none;
 }
 
 .ft-primary-button {

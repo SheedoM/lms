@@ -45,6 +45,7 @@ describe('Coding Lab learner storage isolation', () => {
 		}
 		saveLabState(storage as any, learner, 'lab', {
 			files: { python: 'print("learner")' },
+			starterRevision: 'revision-1',
 		})
 		const key = codingLabStorageKey(learner, 'lab')
 		const before = storage.values.get(key)
@@ -52,11 +53,12 @@ describe('Coding Lab learner storage isolation', () => {
 		expect(
 			loadLabState(storage as any, preview, 'lab', {
 				python: 'print("starter")',
-			}).files.python
+			}, 'revision-1').files.python
 		).toBe('print("starter")')
 		expect(
 			saveLabState(storage as any, preview, 'lab', {
 				files: { python: 'print("preview")' },
+				starterRevision: 'revision-1',
 			})
 		).toBe(false)
 		expect(storage.values.get(key)).toBe(before)
@@ -73,13 +75,41 @@ describe('Coding Lab learner storage isolation', () => {
 		}
 		saveLabState(storage as any, context, 'lab', {
 			files: { python: 'print("draft")' },
+			starterRevision: 'revision-1',
 		})
 
 		const reset = resetLabState(storage as any, context, 'lab', {
 			python: '# committed starter\nprint("ready")',
-		})
+		}, 'revision-1')
 
 		expect(reset.files.python).toContain('# committed starter')
 		expect(storage.values.has(codingLabStorageKey(context, 'lab'))).toBe(false)
+	})
+
+	it('discards a stale draft when the instructor starter revision changes', () => {
+		const storage = memoryStorage()
+		const context = {
+			user: 'u',
+			course: 'c',
+			chapter: '1',
+			lesson: '1',
+			authorPreview: false,
+		}
+		saveLabState(storage as any, context, 'lab', {
+			files: { python: 'print("old draft")' },
+			starterRevision: 'revision-1',
+		})
+
+		const loaded = loadLabState(
+			storage as any,
+			context,
+			'lab',
+			{ python: 'print("new starter")' },
+			'revision-2'
+		)
+
+		expect(loaded.files.python).toBe('print("new starter")')
+		expect(loaded.starterRevision).toBe('revision-2')
+		expect(loaded.starterUpdated).toBe(true)
 	})
 })

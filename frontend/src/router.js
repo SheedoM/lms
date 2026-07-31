@@ -200,6 +200,12 @@ const routes = [
 		meta: { pureStudentOnly: true },
 	},
 	{
+		path: '/coding-lab',
+		name: 'StudentCodingLab',
+		component: () => import('@/pages/Student/CodingLab.vue'),
+		meta: { pureStudentOnly: true },
+	},
+	{
 		path: '/notifications',
 		name: 'StudentNotifications',
 		component: () => import('@/pages/Student/Notifications.vue'),

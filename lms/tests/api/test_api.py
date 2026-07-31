@@ -1,4 +1,5 @@
 import glob
+import inspect
 import os
 import re
 import zipfile
@@ -10,6 +11,7 @@ from lms.lms.api import (
 	export_course_as_zip,
 	get_certified_participants,
 	get_course_assessment_progress,
+	get_student_assessments,
 	import_course_from_zip,
 	track_video_watch_duration,
 )
@@ -75,6 +77,30 @@ class TestLMSAPI(BaseTestUtils):
 			self.assertEqual(exercise.exercise, self.programming_exercise.name)
 			self.assertEqual(exercise.exercise_title, self.programming_exercise.title)
 			self.assertEqual(exercise.status, "Passed")
+
+	def test_student_assessments_are_session_scoped_inline_items(self):
+		self.assertNotIn("member", inspect.signature(get_student_assessments).parameters)
+		original_user = frappe.session.user
+		try:
+			frappe.set_user(self.student1.name)
+			items = get_student_assessments()
+		finally:
+			frappe.set_user(original_user)
+
+		self.assertEqual({item.assessment_type for item in items}, {"quiz", "assignment"})
+		self.assertTrue(all(item.course == self.course.name for item in items))
+		self.assertTrue(all(item.completed for item in items))
+		self.assertTrue(all(item.chapter_number and item.lesson_number for item in items))
+		self.assertNotIn("program", {item.assessment_type for item in items})
+
+	def test_student_assessments_reject_guests(self):
+		original_user = frappe.session.user
+		try:
+			frappe.set_user("Guest")
+			with self.assertRaises(frappe.PermissionError):
+				get_student_assessments()
+		finally:
+			frappe.set_user(original_user)
 
 	def test_quiz_submission(self):
 		submission = frappe.get_all(

@@ -6,10 +6,7 @@ export function buildSandboxDocument({
 	css = '',
 	javascript = '',
 	channel,
-	tests = '',
-	runTests = false,
 }) {
-	const testSource = runTests ? tests : ''
 	return `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head>
 <body>${html}<script>
 (() => {
@@ -25,19 +22,8 @@ export function buildSandboxDocument({
 	}
 	addEventListener('error', event => send('runtime-error', { message: event.error?.stack || event.message }));
 	addEventListener('unhandledrejection', event => send('runtime-error', { message: event.reason?.stack || String(event.reason) }));
-	const tests = [];
-	self.test = (name, fn) => tests.push({ name, fn });
-	self.assert = (value, message = 'Expected value to be truthy') => { if (!value) throw new Error(message); };
-	self.assertEqual = (actual, expected, message = '') => { if (!Object.is(actual, expected)) throw new Error(message || ('Expected ' + clean(expected) + ', received ' + clean(actual))); };
 	try {
-		(0, eval)(${encodeScript(`${javascript}\n${testSource}`)});
-		if (${runTests ? 'true' : 'false'}) {
-			const results = tests.map(({name, fn}) => {
-				try { fn(); return { name, passed: true }; }
-				catch (error) { return { name, passed: false, message: error.message }; }
-			});
-			send('tests', { results });
-		}
+		(0, eval)(${encodeScript(javascript)});
 		send('complete');
 	} catch (error) {
 		send('runtime-error', { message: error.stack || error.message || String(error) });
@@ -52,7 +38,7 @@ export function isCodingLabMessage(event, frameWindow, channel) {
 		event?.source === frameWindow &&
 		data?.source === 'lms-coding-lab' &&
 		data?.channel === channel &&
-		['console', 'runtime-error', 'tests', 'complete'].includes(data.type)
+		['console', 'runtime-error', 'complete'].includes(data.type)
 	)
 }
 
@@ -72,22 +58,41 @@ self.onmessage = async ({ data }) => {
 		let stdout = '', stderr = '';
 		pyodide.setStdout({ batched: text => { stdout += text + '\\n'; } });
 		pyodide.setStderr({ batched: text => { stderr += text + '\\n'; } });
-		const helpers = data.runTests ? \`
-__lms_tests = []
-def test(name, fn):
-    try:
-        fn()
-        __lms_tests.append({"name": name, "passed": True})
-    except Exception as error:
-        __lms_tests.append({"name": name, "passed": False, "message": str(error)})
-def assert_true(value, message="Expected value to be truthy"):
-    if not value: raise AssertionError(message)
-def assert_equal(actual, expected, message=""):
-    if actual != expected: raise AssertionError(message or f"Expected {expected!r}, received {actual!r}")
-\` : '';
-		await pyodide.runPythonAsync(helpers + '\\n' + (data.code || '') + '\\n' + (data.runTests ? (data.tests || '') : ''));
-		const results = data.runTests ? pyodide.runPython('__lms_tests').toJs({ dict_converter: Object.fromEntries }) : [];
-		self.postMessage({ type: 'result', stdout, stderr, results });
+		pyodide.globals.set('__lms_code', String(data.code || ''));
+		pyodide.globals.set('__lms_inputs_json', JSON.stringify(data.inputs || []));
+		await pyodide.runPythonAsync(\`
+import json
+
+class __LMSInputRequest(Exception):
+    pass
+
+__lms_input_values = json.loads(__lms_inputs_json)
+__lms_input_index = 0
+__lms_input_request = None
+
+def __lms_input(prompt=""):
+    global __lms_input_index
+    prompt = str(prompt)
+    if __lms_input_index >= len(__lms_input_values):
+        raise __LMSInputRequest(prompt)
+    value = str(__lms_input_values[__lms_input_index])
+    __lms_input_index += 1
+    print(prompt, end="")
+    print(value)
+    return value
+
+__lms_scope = {"__name__": "__main__", "input": __lms_input}
+try:
+    exec(compile(__lms_code, "<student-code>", "exec"), __lms_scope, __lms_scope)
+except __LMSInputRequest as request:
+    __lms_input_request = str(request)
+\`);
+		const prompt = pyodide.globals.get('__lms_input_request');
+		if (prompt !== undefined && prompt !== null) {
+			self.postMessage({ type: 'input-request', prompt: String(prompt), stdout, stderr });
+		} else {
+			self.postMessage({ type: 'result', stdout, stderr });
+		}
 	} catch (error) {
 		self.postMessage({ type: 'error', message: error.stack || error.message || String(error) });
 	}

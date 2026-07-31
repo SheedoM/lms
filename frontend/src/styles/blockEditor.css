@@ -428,6 +428,8 @@ iframe {
 	margin: 1rem 0;
 	color: #e5e7eb;
 	font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+	direction: ltr;
+	text-align: left;
 }
 
 .coding-lab-kind-picker,
@@ -475,7 +477,7 @@ iframe {
 .coding-lab-kind-button:focus-visible,
 .coding-lab-button:hover,
 .coding-lab-button:focus-visible {
-	border-color: #38bdf8;
+	border-color: #9cff45;
 	outline: none;
 }
 
@@ -518,10 +520,10 @@ iframe {
 	align-items: center;
 	flex: none;
 	padding: 0.15rem 0.5rem;
-	border: 1px solid #155e75;
+	border: 1px solid rgb(156 255 69 / 45%);
 	border-radius: 999px;
-	background: #083344;
-	color: #a5f3fc;
+	background: rgb(156 255 69 / 10%);
+	color: #9cff45;
 	font-size: 0.72rem;
 	font-weight: 600;
 	line-height: 1.3;
@@ -635,9 +637,10 @@ iframe {
 }
 
 .coding-lab-button--primary {
-	border-color: #0891b2;
-	background: #0891b2;
-	color: white;
+	border-color: #9cff45;
+	background: #9cff45;
+	color: #05131a;
+	font-weight: 700;
 }
 
 .coding-lab-button--tab {
@@ -662,35 +665,22 @@ iframe {
 	background: transparent;
 }
 
-.coding-lab-code-editor {
-	display: none;
-	box-sizing: border-box;
+.coding-lab-ace-editor {
 	width: 100%;
 	min-height: 250px;
 	flex: 1 1 250px;
-	padding: 1rem;
 	border: 0;
 	outline: none;
 	background: #050b14;
-	color: #dbeafe;
-	caret-color: #67e8f9;
-	font: 0.86rem/1.65 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-		monospace;
-	resize: vertical;
-	tab-size: 4;
 }
 
-.coding-lab-code-editor.is-active {
+.coding-lab-ide > .coding-lab-ace-editor {
+	display: none;
+}
+
+.coding-lab-ide > .coding-lab-ace-editor.is-active,
+.coding-lab-learner-ide > .coding-lab-ace-editor {
 	display: block;
-}
-
-.coding-lab-tests-editor {
-	padding: 0.75rem;
-	border-top: 1px solid #263244;
-}
-
-.coding-lab-tests-editor textarea {
-	min-height: 88px;
 }
 
 .coding-lab-console {
@@ -699,12 +689,32 @@ iframe {
 }
 
 .coding-lab-console-title {
-	display: block;
-	padding: 0.45rem 0.75rem;
-	border-bottom: 1px solid #1e293b;
 	color: #94a3b8;
 	font-size: 0.72rem;
 	text-transform: uppercase;
+}
+
+.coding-lab-author-console.is-collapsed pre,
+.coding-lab-author-console.is-collapsed .coding-lab-stdin {
+	display: none;
+}
+
+.coding-lab-author-console {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	min-height: 100px;
+	max-height: 420px;
+}
+
+.coding-lab-author-console.is-collapsed {
+	height: auto !important;
+	min-height: 0;
+}
+
+.coding-lab-author-console pre {
+	min-height: 0;
+	flex: 1 1 auto;
 }
 
 .coding-lab-console pre,
@@ -764,7 +774,7 @@ iframe {
 .coding-lab-practice-eyebrow {
 	display: block;
 	margin-bottom: 0.25rem;
-	color: #67e8f9;
+	color: #9cff45;
 	font-size: 0.7rem;
 	font-weight: 700;
 	letter-spacing: 0.08em;
@@ -782,6 +792,12 @@ iframe {
 		minmax(0, var(--coding-lab-lesson-share)) 7px
 		minmax(0, calc(100% - var(--coding-lab-lesson-share) - 7px)) !important;
 	overflow: hidden;
+	direction: ltr;
+}
+
+[dir='rtl'] .coding-lab-learning-grid > :first-child {
+	direction: rtl;
+	text-align: right;
 }
 
 .coding-lab-workspace-divider {
@@ -794,7 +810,7 @@ iframe {
 
 .coding-lab-workspace-divider:hover,
 .coding-lab-workspace-divider:focus-visible {
-	background: #0891b2;
+	background: #9cff45;
 	outline: none;
 }
 
@@ -806,6 +822,8 @@ iframe {
 	overflow: hidden;
 	background: #0b1220;
 	color: #e2e8f0;
+	direction: ltr;
+	text-align: left;
 }
 
 .coding-lab-workspace-header {
@@ -829,13 +847,13 @@ iframe {
 }
 
 .coding-lab-task-panel {
-	padding: 0.75rem 0.9rem;
+	padding: 0.6rem 0.9rem;
 	border-bottom: 1px solid #263244;
 	background: #0f172a;
 }
 
 .coding-lab-task-copy {
-	max-height: 130px;
+	max-height: 96px;
 	margin-top: 0.35rem;
 	overflow: auto;
 	color: #cbd5e1;
@@ -860,13 +878,7 @@ iframe {
 	background: #050b14;
 }
 
-.coding-lab-learner-editor {
-	min-height: 180px;
-	resize: none;
-}
-
-.coding-lab-preview-pane,
-.coding-lab-test-pane {
+.coding-lab-preview-pane {
 	flex: 1 1 auto;
 	min-height: 180px;
 	overflow: auto;
@@ -882,44 +894,6 @@ iframe {
 	background: white;
 }
 
-.coding-lab-test-pane {
-	padding: 1rem;
-	background: #070d17;
-	color: #e2e8f0;
-}
-
-.coding-lab-test-results {
-	display: grid;
-	gap: 0.45rem;
-	margin: 0.75rem 0 0;
-	padding: 0;
-	list-style: none;
-}
-
-.coding-lab-test-results li {
-	display: grid;
-	grid-template-columns: auto 1fr;
-	gap: 0.15rem 0.5rem;
-	padding: 0.55rem 0.65rem;
-	border: 1px solid #334155;
-	border-radius: 6px;
-}
-
-.coding-lab-test-results li small {
-	grid-column: 2;
-	color: #94a3b8;
-}
-
-.coding-lab-test-results .is-passed {
-	border-color: #166534;
-	color: #86efac;
-}
-
-.coding-lab-test-results .is-failed {
-	border-color: #991b1b;
-	color: #fca5a5;
-}
-
 .coding-lab-console-resizer {
 	height: 6px;
 	flex: none;
@@ -932,7 +906,7 @@ iframe {
 
 .coding-lab-console-resizer:hover,
 .coding-lab-console-resizer:focus-visible {
-	background: #0891b2;
+	background: #9cff45;
 	outline: none;
 }
 
@@ -970,6 +944,81 @@ iframe {
 	padding-inline: 0.75rem;
 	font-size: 0.75rem;
 	font-weight: 600;
+	cursor: pointer;
+}
+
+.coding-lab-standalone-shell {
+	overflow: hidden;
+	border: 1px solid #263244;
+	border-radius: 14px;
+	box-shadow: 0 14px 36px rgb(5 19 26 / 12%);
+}
+
+.coding-lab-standalone-shell .coding-lab-workspace {
+	height: 100%;
+	min-height: 560px;
+}
+
+.coding-lab-starter-notice {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.5rem 0.75rem;
+	border-bottom: 1px solid rgb(156 255 69 / 28%);
+	background: rgb(156 255 69 / 10%);
+	color: #d9ffc1;
+	font-size: 0.78rem;
+}
+
+.coding-lab-starter-notice button {
+	border: 0;
+	background: transparent;
+	color: #9cff45;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.coding-lab-stdin {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.5rem 0.75rem 0.7rem;
+	border-top: 1px solid #1e293b;
+	color: #d1fae5;
+	font: 0.78rem/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+		monospace;
+}
+
+.coding-lab-stdin label {
+	white-space: pre-wrap;
+}
+
+.coding-lab-stdin input {
+	min-width: 0;
+	flex: 1 1 auto;
+	padding: 0.35rem 0.5rem;
+	border: 1px solid #334155;
+	border-radius: 5px;
+	outline: none;
+	background: #050b14;
+	color: #d1fae5;
+	font: inherit;
+}
+
+.coding-lab-stdin input:focus {
+	border-color: #9cff45;
+	box-shadow: 0 0 0 2px rgb(156 255 69 / 15%);
+}
+
+.coding-lab-stdin button {
+	padding: 0.35rem 0.65rem;
+	border: 1px solid #9cff45;
+	border-radius: 5px;
+	background: #9cff45;
+	color: #05131a;
+	font: inherit;
+	font-weight: 700;
 	cursor: pointer;
 }
 

@@ -34,11 +34,16 @@ describe('pure-student role boundary', () => {
 		expect(isPureStudentData(null)).toBe(false)
 	})
 
-	it('defines exactly the five requested destinations in order', () => {
+	it('defines the focused student destinations in order', () => {
 		expect(STUDENT_NAV_ITEMS.map(({ label, labelAr, to }) => ({ label, labelAr, to })))
 			.toEqual([
 				{ label: 'Home', labelAr: 'الرئيسية', to: 'Home' },
 				{ label: 'Learning', labelAr: 'التعلّم', to: 'Courses' },
+				{
+					label: 'Coding Lab',
+					labelAr: 'Coding Lab',
+					to: 'StudentCodingLab',
+				},
 				{
 					label: 'Assessments',
 					labelAr: 'التقييمات',
@@ -101,6 +106,14 @@ describe('student responsive navigation', () => {
 				focusMode: true,
 			})
 		).toBe('rail')
+		expect(
+			getStudentNavigationMode({
+				width: 1600,
+				height: 900,
+				focusMode: true,
+				temporaryExpanded: true,
+			})
+		).toBe('overlay')
 	})
 })
 

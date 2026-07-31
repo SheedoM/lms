@@ -8,20 +8,28 @@
 			{{ __('Skip to main content') }}
 		</a>
 		<StudentNavigation />
-		<main
-			id="student-main-content"
-			tabindex="-1"
-			class="ft-grid min-w-0 flex-1 overflow-auto bg-[var(--ft-canvas)] text-[var(--ft-ink)] focus:outline-none"
-			:class="{ 'pb-20': usesBottomNavigation }"
-		>
-			<slot />
-		</main>
+		<div class="flex min-w-0 flex-1 flex-col bg-[var(--ft-canvas)] text-[var(--ft-ink)]">
+			<header
+				class="flex h-14 shrink-0 items-center justify-end border-b border-[var(--ft-border)] bg-[var(--ft-canvas)] px-4 sm:px-6"
+			>
+				<StudentLanguageToggle />
+			</header>
+			<main
+				id="student-main-content"
+				tabindex="-1"
+				class="min-w-0 flex-1 overflow-auto focus:outline-none"
+				:class="{ 'pb-20': usesBottomNavigation }"
+			>
+				<slot />
+			</main>
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import StudentNavigation from '@/components/Student/StudentNavigation.vue'
+import StudentLanguageToggle from '@/components/Student/StudentLanguageToggle.vue'
 import { skipToContent } from '@/utils/a11y'
 import { useScreenSize } from '@/utils/composables'
 import { getStudentNavigationMode } from '@/composables/useStudentExperience'

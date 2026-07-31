@@ -80,12 +80,16 @@ def get_user_info():
 
 
 @frappe.whitelist(allow_guest=True)
-def get_translations():
-	if frappe.session.user != "Guest":
+def get_translations(language: str | None = None):
+	if language:
+		language = language.strip().lower()
+		if language not in {"ar", "en"}:
+			frappe.throw(_("Only Arabic and English are available."), frappe.ValidationError)
+	elif frappe.session.user != "Guest":
 		language = frappe.db.get_value("User", frappe.session.user, "language")
 	else:
 		language = frappe.db.get_single_value("System Settings", "language")
-	return get_all_translations(language)
+	return get_all_translations(language or "en")
 
 
 @frappe.whitelist()
@@ -2634,6 +2638,242 @@ def get_course_assessment_progress(course: str, member: str):
 		"assignments": assignments,
 		"exercises": programming_exercises,
 	}
+
+
+@frappe.whitelist()
+def get_student_assessments():
+	"""Return inline quizzes and assignments for the signed-in learner.
+
+	The endpoint deliberately has no ``member`` argument. Assessment discovery is
+	always scoped to the current session and to courses or batches in which that
+	user is enrolled.
+	"""
+	if frappe.session.user == "Guest":
+		frappe.throw(_("You must be logged in to view assessments."), frappe.PermissionError)
+
+	member = frappe.session.user
+	courses = frappe.get_all(
+		"LMS Enrollment",
+		filters={"member": member},
+		pluck="course",
+		order_by="creation",
+	)
+	batches = frappe.get_all(
+		"LMS Batch Enrollment",
+		filters={"member": member},
+		pluck="batch",
+		order_by="creation",
+	)
+	if batches:
+		courses.extend(
+			frappe.get_all(
+				"Batch Course",
+				filters={
+					"parent": ["in", batches],
+					"parenttype": "LMS Batch",
+				},
+				pluck="course",
+				order_by="idx",
+			)
+		)
+	courses = list(dict.fromkeys(course for course in courses if course))
+	if not courses:
+		return []
+
+	ChapterReference = frappe.qb.DocType("Chapter Reference")
+	LessonReference = frappe.qb.DocType("Lesson Reference")
+	Lesson = frappe.qb.DocType("Course Lesson")
+	Course = frappe.qb.DocType("LMS Course")
+
+	lessons = (
+		frappe.qb.from_(ChapterReference)
+		.join(LessonReference)
+		.on(LessonReference.parent == ChapterReference.chapter)
+		.join(Lesson)
+		.on(Lesson.name == LessonReference.lesson)
+		.join(Course)
+		.on(Course.name == ChapterReference.parent)
+		.select(
+			ChapterReference.parent.as_("course"),
+			Course.title.as_("course_title"),
+			ChapterReference.idx.as_("chapter_number"),
+			LessonReference.idx.as_("lesson_number"),
+			Lesson.name.as_("lesson"),
+			Lesson.title.as_("lesson_title"),
+			Lesson.content,
+		)
+		.where(ChapterReference.parent.isin(courses))
+		.orderby(Course.title, ChapterReference.idx, LessonReference.idx)
+	).run(as_dict=True)
+
+	discovered = []
+	seen_assessments = set()
+	quiz_names = set()
+	assignment_names = set()
+	for lesson in lessons:
+		for block_index, block in enumerate(get_editorjs_blocks(lesson.content)):
+			assessment_type = block.get("type")
+			if assessment_type not in {"quiz", "assignment"}:
+				continue
+			assessment_name = (block.get("data") or {}).get(assessment_type)
+			if not assessment_name:
+				continue
+			assessment_key = (assessment_type, assessment_name)
+			if assessment_key in seen_assessments:
+				continue
+			seen_assessments.add(assessment_key)
+			if assessment_type == "quiz":
+				quiz_names.add(assessment_name)
+			else:
+				assignment_names.add(assessment_name)
+			discovered.append(
+				frappe._dict(
+					{
+						"key": (
+							f"{assessment_type}:{lesson.course}:{lesson.lesson}:"
+							f"{block.get('id') or block_index}:{assessment_name}"
+						),
+						"assessment_type": assessment_type,
+						"assessment_name": assessment_name,
+						"course": lesson.course,
+						"course_title": lesson.course_title,
+						"chapter_number": lesson.chapter_number,
+						"lesson_number": lesson.lesson_number,
+						"lesson": lesson.lesson,
+						"lesson_title": lesson.lesson_title,
+					}
+				)
+			)
+
+	if batches:
+		batch_titles = {
+			row.name: row.title
+			for row in frappe.get_all(
+				"LMS Batch",
+				filters={"name": ["in", batches]},
+				fields=["name", "title"],
+			)
+		}
+		batch_order = {name: index for index, name in enumerate(batches)}
+		batch_assessments = frappe.get_all(
+			"LMS Assessment",
+			filters={
+				"parent": ["in", batches],
+				"parenttype": "LMS Batch",
+				"assessment_type": ["in", ["LMS Quiz", "LMS Assignment"]],
+			},
+			fields=[
+				"name",
+				"parent as batch",
+				"idx",
+				"assessment_type",
+				"assessment_name",
+			],
+			order_by="idx",
+		)
+		batch_assessments.sort(
+			key=lambda row: (batch_order.get(row.batch, len(batch_order)), row.idx)
+		)
+		for assessment in batch_assessments:
+			assessment_type = "quiz" if assessment.assessment_type == "LMS Quiz" else "assignment"
+			assessment_key = (assessment_type, assessment.assessment_name)
+			if assessment_key in seen_assessments:
+				continue
+			seen_assessments.add(assessment_key)
+			if assessment_type == "quiz":
+				quiz_names.add(assessment.assessment_name)
+			else:
+				assignment_names.add(assessment.assessment_name)
+			discovered.append(
+				frappe._dict(
+					{
+						"key": (
+							f"batch:{assessment.batch}:{assessment_type}:"
+							f"{assessment.assessment_name}"
+						),
+						"assessment_type": assessment_type,
+						"assessment_name": assessment.assessment_name,
+						"batch": assessment.batch,
+						"batch_title": batch_titles.get(assessment.batch) or assessment.batch,
+						"course": None,
+						"course_title": None,
+						"chapter_number": None,
+						"lesson_number": None,
+						"lesson": None,
+						"lesson_title": None,
+					}
+				)
+			)
+
+	quiz_titles = _assessment_titles("LMS Quiz", quiz_names)
+	assignment_titles = _assessment_titles("LMS Assignment", assignment_names)
+	quiz_submissions = _latest_assessment_submissions(
+		"LMS Quiz Submission",
+		"quiz",
+		quiz_names,
+		member,
+		["name", "quiz", "percentage"],
+	)
+	assignment_submissions = _latest_assessment_submissions(
+		"LMS Assignment Submission",
+		"assignment",
+		assignment_names,
+		member,
+		["name", "assignment", "status"],
+	)
+
+	for item in discovered:
+		if item.assessment_type == "quiz":
+			submission = quiz_submissions.get(item.assessment_name)
+			item.title = quiz_titles.get(item.assessment_name) or item.assessment_name
+			item.completed = bool(submission)
+			item.status = f"{flt(submission.percentage):g}%" if submission else "To do"
+			item.submission = submission.name if submission else None
+		else:
+			submission = assignment_submissions.get(item.assessment_name)
+			item.title = assignment_titles.get(item.assessment_name) or item.assessment_name
+			item.completed = bool(submission)
+			item.status = submission.status if submission else "To do"
+			item.submission = submission.name if submission else None
+
+	return discovered
+
+
+def _assessment_titles(doctype: str, names: set) -> dict:
+	if not names:
+		return {}
+	return {
+		row.name: row.title
+		for row in frappe.get_all(
+			doctype,
+			filters={"name": ["in", list(names)]},
+			fields=["name", "title"],
+		)
+	}
+
+
+def _latest_assessment_submissions(
+	doctype: str,
+	assessment_field: str,
+	assessment_names: set,
+	member: str,
+	fields: list,
+) -> dict:
+	if not assessment_names:
+		return {}
+	rows = frappe.get_all(
+		doctype,
+		filters={
+			assessment_field: ["in", list(assessment_names)],
+			"member": member,
+		},
+		fields=fields,
+		order_by="creation desc",
+	)
+	latest = {}
+	for row in rows:
+		latest.setdefault(row.get(assessment_field), row)
+	return latest
 
 
 def get_course_quiz_progress(course: str, member: str):

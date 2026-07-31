@@ -4,7 +4,7 @@
 			:title="__('Assessments')"
 			:eyebrow="__('Faragallah Tech')"
 			:description="
-				__('Upcoming evaluation appointments and assessment activity available from your courses and groups.')
+				__('Quizzes, assignments, and evaluation activity from your courses and groups.')
 			"
 		/>
 
@@ -13,9 +13,9 @@
 				<div class="mb-5 flex items-center justify-between gap-4">
 					<div>
 						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ft-muted)]">
-							{{ __('Scheduled') }}
+							{{ __('Learning tasks') }}
 						</p>
-						<h2 class="mt-1 text-xl font-semibold">{{ __('Upcoming') }}</h2>
+						<h2 class="mt-1 text-xl font-semibold">{{ __('To do') }}</h2>
 					</div>
 					<span class="rounded-full border border-[var(--ft-border)] px-2.5 py-1 text-xs text-[var(--ft-muted)]">
 						{{ upcomingItems.length }}
@@ -29,7 +29,7 @@
 					/>
 				</div>
 				<div v-else class="rounded-xl border border-dashed border-[var(--ft-border)] p-5 text-sm text-[var(--ft-muted)]">
-					{{ __('No upcoming evaluations or pending group assessments are available.') }}
+					{{ __('No quizzes, assignments, or evaluations are waiting for you.') }}
 				</div>
 			</section>
 
@@ -53,7 +53,7 @@
 					/>
 				</div>
 				<div v-else class="rounded-xl border border-dashed border-[var(--ft-border)] p-5 text-sm text-[var(--ft-muted)]">
-					{{ __('Completed quizzes, assignments, and evaluations will appear here when exposed by the current APIs.') }}
+					{{ __('Completed quizzes, assignments, and evaluations will appear here.') }}
 				</div>
 			</section>
 		</div>
@@ -65,17 +65,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h, inject, ref, watch } from 'vue'
-import { call, createListResource, createResource, usePageMeta } from 'frappe-ui'
+import { computed, defineComponent, h, inject } from 'vue'
+import { createListResource, usePageMeta } from 'frappe-ui'
 import { RouterLink } from 'vue-router'
 import StudentPageHeader from '@/components/Student/StudentPageHeader.vue'
 import { sessionStore } from '@/stores/session'
+import {
+	studentAssessmentRoute,
+	useStudentAssessments,
+} from '@/composables/useStudentAssessments'
 
 type AssessmentItem = {
 	key: string
 	title: string
 	type: string
 	status: string
+	completed?: boolean
+	identity?: string
 	meta?: string
 	route?: any
 	href?: string
@@ -84,12 +90,8 @@ type AssessmentItem = {
 const user = inject<any>('$user')
 const dayjs = inject<any>('$dayjs')
 const { brand } = sessionStore()
-const batchAssessments = ref<AssessmentItem[]>([])
+const { items: inlineAssessments } = useStudentAssessments()
 
-const myGroups = createResource({
-	url: 'lms.lms.api.get_my_batches',
-	auto: true,
-})
 const certificateRequests = createListResource({
 	doctype: 'LMS Certificate Request',
 	filters: { member: user.data?.name, status: ['in', ['Upcoming', 'Completed']] },
@@ -108,75 +110,6 @@ const certificateRequests = createListResource({
 	pageLength: 100,
 	auto: true,
 })
-const quizSubmissions = createListResource({
-	doctype: 'LMS Quiz Submission',
-	filters: { member: user.data?.name },
-	fields: ['name', 'quiz', 'quiz_title', 'percentage', 'course'],
-	orderBy: 'modified desc',
-	pageLength: 100,
-	auto: true,
-})
-const assignmentSubmissions = createListResource({
-	doctype: 'LMS Assignment Submission',
-	filters: { member: user.data?.name },
-	fields: ['name', 'assignment', 'assignment_title', 'status', 'course'],
-	orderBy: 'modified desc',
-	pageLength: 100,
-	auto: true,
-})
-
-watch(
-	() => myGroups.data,
-	async (groups) => {
-		if (!groups) return
-		const enrolledGroups = groups.filter((group: any) =>
-			group.students?.includes(user.data?.name)
-		)
-		const assessmentResults = await Promise.allSettled(
-			enrolledGroups.map(async (group: any) => {
-				const assessments = await call('lms.lms.utils.get_assessments', {
-					batch: group.name,
-				})
-				return (assessments || [])
-					.filter(
-						(assessment: any) =>
-							assessment.assessment_type !== 'LMS Programming Exercise'
-					)
-					.map((assessment: any) => ({
-						key: `group-${group.name}-${assessment.name}`,
-						title: assessment.title,
-						type:
-							assessment.assessment_type === 'LMS Quiz'
-								? __('Quiz')
-								: __('Assignment'),
-						status: assessment.completed
-							? assessment.status || __('Completed')
-							: __('Pending'),
-						meta: `${__('Group')}: ${group.title}`,
-						route:
-							assessment.assessment_type === 'LMS Quiz'
-								? {
-										name: 'QuizPage',
-										params: { quizID: assessment.assessment_name },
-								  }
-								: {
-										name: 'AssignmentSubmission',
-										params: {
-											assignmentID: assessment.assessment_name,
-											submissionName:
-												assessment.submission?.name || 'new-submission',
-										},
-								  },
-						completed: Boolean(assessment.completed),
-					}))
-			})
-		)
-		batchAssessments.value = assessmentResults.flatMap((result) =>
-			result.status === 'fulfilled' ? result.value : []
-		)
-	},
-	{ immediate: true }
-)
 
 const certificateItems = computed(() =>
 	(certificateRequests.data || []).map((evaluation: any) => ({
@@ -199,40 +132,39 @@ const certificateItems = computed(() =>
 		completed: evaluation.status === 'Completed',
 	}))
 )
-const quizItems = computed(() =>
-	(quizSubmissions.data || []).map((quiz: any) => ({
-		key: `quiz-${quiz.name}`,
-		title: quiz.quiz_title || quiz.quiz,
-		type: __('Quiz'),
-		status: `${Number(quiz.percentage || 0)}%`,
-		meta: quiz.course || '',
-		route: { name: 'QuizPage', params: { quizID: quiz.quiz } },
-		completed: true,
+const inlineItems = computed(() =>
+	inlineAssessments.value.map((assessment) => ({
+		key: `course-${assessment.key}`,
+		identity: `${
+			assessment.assessment_type === 'quiz'
+				? 'LMS Quiz'
+				: 'LMS Assignment'
+		}:${assessment.assessment_name}`,
+		title: assessment.title,
+		type:
+			assessment.assessment_type === 'quiz'
+				? __('Quiz')
+				: __('Assignment'),
+		status: __(assessment.status),
+		meta:
+			assessment.course_title && assessment.lesson_title
+				? `${assessment.course_title} · ${assessment.lesson_title}`
+				: `${__('Group')}: ${assessment.batch_title}`,
+		route: studentAssessmentRoute(assessment),
+		completed: assessment.completed,
 	}))
 )
-const assignmentItems = computed(() =>
-	(assignmentSubmissions.data || []).map((assignment: any) => ({
-		key: `assignment-${assignment.name}`,
-		title: assignment.assignment_title || assignment.assignment,
-		type: __('Assignment'),
-		status: __(assignment.status || 'Submitted'),
-		meta: assignment.course || '',
-		route: {
-			name: 'AssignmentSubmission',
-			params: {
-				assignmentID: assignment.assignment,
-				submissionName: assignment.name,
-			},
-		},
-		completed: true,
-	}))
-)
-const allItems = computed(() => [
-	...certificateItems.value,
-	...batchAssessments.value,
-	...quizItems.value,
-	...assignmentItems.value,
-])
+const allItems = computed(() => {
+	const combined = [
+		...certificateItems.value,
+		...inlineItems.value,
+	]
+	const deduplicated = new Map<string, any>()
+	combined.forEach((item: any) =>
+		deduplicated.set(item.identity || item.key, item)
+	)
+	return [...deduplicated.values()]
+})
 const upcomingItems = computed(() =>
 	allItems.value.filter((item: any) => !item.completed)
 )

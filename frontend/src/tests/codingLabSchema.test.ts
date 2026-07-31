@@ -1,7 +1,9 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import {
+	CODING_LAB_SCHEMA_VERSION,
 	extractCodingLabs,
 	normalizeCodingLab,
+	serializeCodingLab,
 } from '@/utils/codingLab/schema'
 
 beforeAll(() => {
@@ -23,7 +25,8 @@ describe('Coding Lab block normalization', () => {
 		expect(lab.lab_kind).toBe('web')
 		expect(lab.enabled_web_files).toEqual(['javascript'])
 		expect(lab.starter_files.javascript).toContain('answer')
-		expect(lab.test_code).toContain("test('answer'")
+		expect(lab).not.toHaveProperty('test_code')
+		expect(lab.schema_version).toBe(CODING_LAB_SCHEMA_VERSION)
 	})
 
 	it('normalizes full_web and string Python starter_code variants', () => {
@@ -58,5 +61,40 @@ describe('Coding Lab block normalization', () => {
 			],
 		})
 		expect(labs.map((lab) => lab.block_id)).toEqual(['one', 'two'])
+	})
+
+	it('changes the starter revision only when committed mode or files change', () => {
+		const original = normalizeCodingLab({
+			block_id: 'lab',
+			lab_kind: 'python',
+			starter_files: { python: 'print("one")' },
+			title: 'First title',
+		})
+		const renamed = normalizeCodingLab({
+			...original,
+			title: 'Renamed',
+		})
+		const changed = normalizeCodingLab({
+			...original,
+			starter_files: { ...original.starter_files, python: 'print("two")' },
+		})
+
+		expect(renamed.starter_revision).toBe(original.starter_revision)
+		expect(changed.starter_revision).not.toBe(original.starter_revision)
+	})
+
+	it('strips legacy assessment fields when an instructor saves', () => {
+		const saved = serializeCodingLab({
+			lab_type: 'javascript',
+			starter_code: { js: 'console.log("practice")' },
+			test_code: 'legacy tests',
+			autograding: true,
+			attempts: [{ score: 100 }],
+		})
+
+		expect(saved).not.toHaveProperty('test_code')
+		expect(saved).not.toHaveProperty('autograding')
+		expect(saved).not.toHaveProperty('attempts')
+		expect(saved.starter_revision).toMatch(/^starter-[0-9a-f]{8}$/)
 	})
 })

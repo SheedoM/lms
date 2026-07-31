@@ -130,6 +130,7 @@ import {
 	BookOpen,
 	CircleUserRound,
 	ClipboardCheck,
+	Code2,
 	Home,
 	PanelLeftClose,
 	PanelLeftOpen,
@@ -157,6 +158,7 @@ const icons = {
 	BookOpen,
 	CircleUserRound,
 	ClipboardCheck,
+	Code2,
 	House: Home,
 }
 

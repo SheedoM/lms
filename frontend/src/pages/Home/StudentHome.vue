@@ -70,6 +70,36 @@
 			</router-link>
 		</section>
 
+		<section class="ft-panel rounded-2xl px-5 py-5 sm:px-6">
+			<div class="flex items-center justify-between gap-4">
+				<div>
+					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ft-muted)]">
+						{{ __('Learning tasks') }}
+					</p>
+					<h2 class="mt-1 text-xl font-semibold">{{ __('To do') }}</h2>
+				</div>
+				<router-link
+					:to="{ name: 'StudentAssessments' }"
+					class="text-xs font-semibold underline decoration-[#9cff45] decoration-2 underline-offset-4"
+				>
+					{{ __('View all') }}
+				</router-link>
+			</div>
+			<div v-if="todoAssessments.length" class="mt-3">
+				<StudentAssessmentRow
+					v-for="item in todoAssessments.slice(0, 5)"
+					:key="item.key"
+					:item="item"
+				/>
+			</div>
+			<div
+				v-else
+				class="mt-4 border-s-2 border-[#9cff45] py-2 ps-4 text-sm text-[var(--ft-muted)]"
+			>
+				{{ __('No quizzes or assignments are waiting for you.') }}
+			</div>
+		</section>
+
 		<div class="grid gap-6 xl:grid-cols-[minmax(0,1.5fr),minmax(18rem,1fr)]">
 			<section class="ft-panel rounded-2xl p-5 sm:p-6">
 				<div class="mb-5 flex items-center justify-between gap-4">
@@ -189,12 +219,15 @@ import {
 	selectContinueCourse,
 	type StudentCourse,
 } from '@/composables/useStudentExperience'
+import { useStudentAssessments } from '@/composables/useStudentAssessments'
+import StudentAssessmentRow from '@/components/Student/StudentAssessmentRow.vue'
 
 const dayjs = inject<any>('$dayjs')
 const user = inject<any>('$user')
 const props = defineProps<{ myLiveClasses: any }>()
 const announcements = ref<any[]>([])
 const announcementsLoading = ref(true)
+const { todo: todoAssessments } = useStudentAssessments()
 
 const myCourses = createResource({
 	url: 'lms.lms.api.get_my_courses',

@@ -1,8 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
-import {
-	egyptianArabicErrorHint,
-	formatRuntimeError,
-} from '@/utils/codingLab/errorHelp'
+import { describe, expect, it } from 'vitest'
 import {
 	clampLessonShare,
 	lessonShareFromPointer,
@@ -11,32 +7,8 @@ import {
 import {
 	buildSandboxDocument,
 	isCodingLabMessage,
+	pyodideWorkerSource,
 } from '@/utils/codingLab/runtime'
-
-beforeAll(() => {
-	;(globalThis as any).__ = (text: string) => text
-})
-
-describe('Coding Lab runtime error help', () => {
-	it('maps common errors deterministically and keeps the original first', () => {
-		const formatted = formatRuntimeError(
-			'NameError: name answer is not defined',
-			true
-		)
-		expect(formatted.original).toContain('NameError')
-		expect(formatted.hint).toBe(
-			egyptianArabicErrorHint('NameError: name answer is not defined')
-		)
-		expect(formatted.hint).toContain('متغير')
-	})
-
-	it('uses a neutral Arabic hint for unknown errors and no hint in LTR', () => {
-		expect(egyptianArabicErrorHint('Something novel happened')).toContain(
-			'مش كفاية'
-		)
-		expect(formatRuntimeError('TypeError: bad value', false).hint).toBe('')
-	})
-})
 
 describe('Coding Lab workspace sizing', () => {
 	it('clamps the lesson side to 35–65 percent', () => {
@@ -71,15 +43,24 @@ describe('Coding Lab Web sandbox messaging', () => {
 		expect(isCodingLabMessage(valid, frameWindow, 'run-2')).toBe(false)
 	})
 
-	it('places learner code and local tests in one sandbox execution', () => {
+	it('places learner code in the sandbox without an assessment harness', () => {
 		const document = buildSandboxDocument({
 			javascript: 'const answer = 42',
-			tests: "test('answer', () => assertEqual(answer, 42))",
-			runTests: true,
 			channel: 'run-1',
 		})
 		expect(document).toContain('const answer = 42')
-		expect(document).toContain("test('answer'")
+		expect(document).not.toContain('assertEqual')
+		expect(document).not.toContain('runTests')
 		expect(document).toContain("source: 'lms-coding-lab'")
+	})
+})
+
+describe('Coding Lab Python runtime', () => {
+	it('supports repeated input requests and preserves original Python errors', () => {
+		const worker = pyodideWorkerSource()
+		expect(worker).toContain("type: 'input-request'")
+		expect(worker).toContain('__lms_inputs_json')
+		expect(worker).toContain('error.stack || error.message')
+		expect(worker).not.toContain('Arabic')
 	})
 })

@@ -801,8 +801,7 @@ const resizeWorkspace = (event) => {
 	lessonShare.value = lessonShareFromPointer(
 		event.clientX,
 		rect.left,
-		rect.width,
-		document.documentElement.dir === 'rtl'
+		rect.width
 	)
 }
 
@@ -816,15 +815,9 @@ const stopWorkspaceResize = () => {
 const resizeWorkspaceByKeyboard = (event) => {
 	if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return
 	event.preventDefault()
-	const key =
-		document.documentElement.dir === 'rtl'
-			? event.key === 'ArrowLeft'
-				? 'ArrowRight'
-				: 'ArrowLeft'
-			: event.key
 	lessonShare.value = resizeLessonShare(
 		lessonShare.value,
-		key,
+		event.key,
 		event.shiftKey ? 5 : 2
 	)
 	storeLessonShare()
