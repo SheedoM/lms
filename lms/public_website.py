@@ -502,6 +502,13 @@ def public_signup(
 		frappe.throw(_("An account with this email already exists. Please log in instead."))
 
 	frappe.db.commit()
-	frappe.local.login_manager.login_as(user.name)
+	if hasattr(frappe.local, "login_manager"):
+		# Real request: run the framework's full login lifecycle (session,
+		# cookies, on_login hooks) so the browser ends up properly signed in.
+		frappe.local.login_manager.login_as(user.name)
+	else:
+		# No request-bound LoginManager (e.g. called directly from a unit
+		# test or the console) — just switch the session user.
+		frappe.set_user(user.name)
 
 	return {"redirect_to": safe_local_redirect(redirect_to) or get_lms_route()}
