@@ -86,6 +86,7 @@ def get_public_settings():
 		settings.gallery_items = []
 		settings.partners = []
 		settings.faqs = []
+		settings.payment_methods = []
 		return settings
 
 	try:
@@ -94,6 +95,7 @@ def get_public_settings():
 		settings.gallery_items = []
 		settings.partners = []
 		settings.faqs = []
+		settings.payment_methods = []
 		return settings
 
 	for fieldname in DEFAULT_SETTINGS:
@@ -121,6 +123,9 @@ def get_public_settings():
 		(doc.get("partners") or []), key=lambda row: (row.display_order or 0, row.idx)
 	)
 	settings.faqs = sorted((doc.get("faqs") or []), key=lambda row: (row.display_order or 0, row.idx))
+	settings.payment_methods = sorted(
+		(doc.get("payment_methods") or []), key=lambda row: (row.display_order or 0, row.idx)
+	)
 	return settings
 
 
@@ -386,6 +391,16 @@ def submit_subscription_request(
 	payment_screenshot = (payment_screenshot or "").strip()
 	if not payment_method or not sender_phone or not payment_screenshot:
 		frappe.throw(_("Please complete the required payment details."))
+
+	# Only enforce this once at least one method is configured, so a fresh
+	# site with an empty list doesn't lock every request out.
+	configured_methods = frappe.get_all(
+		"Landing Payment Method",
+		filters={"parenttype": "Landing Page Settings", "parent": "Landing Page Settings"},
+		pluck="method_name",
+	)
+	if configured_methods and payment_method not in configured_methods:
+		frappe.throw(_("Please choose a valid payment method."))
 	if not payment_screenshot.startswith(("/files/", "/private/files/")):
 		frappe.throw(_("Invalid payment screenshot."))
 	if not frappe.db.exists(

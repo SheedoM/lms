@@ -8,11 +8,31 @@
 	const submitButton = form.querySelector('[data-submit-button]')
 	const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || ''
 
+	const paymentMethodGroup = form.querySelector('[data-payment-method-options]')
+	if (paymentMethodGroup) {
+		const hiddenInput = paymentMethodGroup.querySelector('[data-payment-method-value]')
+		const buttons = [...paymentMethodGroup.querySelectorAll('[data-payment-method-btn]')]
+		buttons.forEach((button) => {
+			button.addEventListener('click', () => {
+				buttons.forEach((item) => {
+					const isSelected = item === button
+					item.classList.toggle('is-active', isSelected)
+					item.setAttribute('aria-checked', String(isSelected))
+				})
+				hiddenInput.value = button.dataset.value
+			})
+		})
+	}
+
 	form.addEventListener('submit', async (event) => {
 		event.preventDefault()
 		setMessage('', '')
 
 		const data = new FormData(form)
+		if (!String(data.get('payment_method') || '').trim()) {
+			setMessage('من فضلك اختار طريقة الدفع.', 'error')
+			return
+		}
 		const screenshot = data.get('payment_screenshot')
 		if (!(screenshot instanceof File) || !screenshot.size) {
 			setMessage('من فضلك ارفع صورة إثبات الدفع.', 'error')

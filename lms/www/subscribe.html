@@ -32,6 +32,16 @@
 					{% if offering.short_description %}<p>{{ offering.short_description }}</p>{% endif %}
 					{% if offering.price %}<div class="ft-course-detail-price"><strong>{{ offering.price|int }} {{ offering.currency or 'EGP' }}</strong></div>{% endif %}
 				</div>
+				{% if settings.payment_methods %}
+				<div class="ft-subscription-payment-info">
+					<h3>حوّل المبلغ إلى</h3>
+					<ul>
+						{% for method in settings.payment_methods %}
+						<li><strong>{{ method.method_name }}</strong><span dir="ltr">{{ method.account_number }}</span></li>
+						{% endfor %}
+					</ul>
+				</div>
+				{% endif %}
 			</aside>
 
 			<section class="ft-subscription-form-card">
@@ -53,7 +63,16 @@
 				<form data-subscription-form data-offering-slug="{{ offering.slug }}">
 					<label class="ft-form-field">
 						<span>طريقة الدفع</span>
+						{% if settings.payment_methods %}
+						<div class="ft-payment-method-options" role="radiogroup" aria-label="طريقة الدفع" data-payment-method-options>
+							<input type="hidden" name="payment_method" data-payment-method-value />
+							{% for method in settings.payment_methods %}
+							<button type="button" class="ft-payment-method-btn" role="radio" aria-checked="false" data-payment-method-btn data-value="{{ method.method_name }}">{{ method.method_name }}</button>
+							{% endfor %}
+						</div>
+						{% else %}
 						<input type="text" name="payment_method" placeholder="مثال: InstaPay أو محفظة إلكترونية" required />
+						{% endif %}
 					</label>
 
 					<label class="ft-form-field">

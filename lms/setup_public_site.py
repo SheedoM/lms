@@ -53,6 +53,11 @@ FAQ_DEFAULTS = [
 	},
 ]
 
+PAYMENT_METHOD_DEFAULTS = [
+	{"method_name": "VodafoneCash", "account_number": "010177798223", "display_order": 1},
+	{"method_name": "InstaPay", "account_number": "010177798223", "display_order": 2},
+]
+
 
 MEDIA_CANDIDATES = {
 	"logo": ["FaragallahTech logo(3).png", "faragallahtech-logo.png", "logo.png"],
@@ -90,9 +95,16 @@ def seed_public_site_defaults():
 		doc.insert(ignore_permissions=True)
 
 	settings = frappe.get_single("Landing Page Settings")
+	settings_dirty = False
 	if not settings.faqs:
 		for item in FAQ_DEFAULTS:
 			settings.append("faqs", item)
+		settings_dirty = True
+	if not settings.payment_methods:
+		for item in PAYMENT_METHOD_DEFAULTS:
+			settings.append("payment_methods", item)
+		settings_dirty = True
+	if settings_dirty:
 		settings.save(ignore_permissions=True)
 
 	if not frappe.db.exists("Course Offering", "code-plus-plus"):

@@ -22,8 +22,10 @@
 
 		<div>
 			<h3>الحساب</h3>
+			{% if is_guest %}
 			<a href="/login">{{ settings.login_button_label }}</a>
 			<a href="/signup">{{ settings.signup_button_label }}</a>
+			{% endif %}
 			<a href="/lms">المنصة التعليمية</a>
 		</div>
 

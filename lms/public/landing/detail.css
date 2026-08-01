@@ -83,6 +83,77 @@
 	font-size: 0.92rem;
 }
 
+.ft-subscription-payment-info {
+	grid-column: 1 / -1;
+	padding-top: 16px;
+	border-top: 1px solid var(--ft-line);
+}
+
+.ft-subscription-payment-info h3 {
+	margin: 0 0 10px;
+	color: var(--ft-navy);
+	font-size: 0.95rem;
+}
+
+.ft-subscription-payment-info ul {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ft-subscription-payment-info li {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 14px;
+	border: 1px solid var(--ft-line);
+	border-radius: 100px;
+	background: var(--ft-soft);
+	font-size: 0.88rem;
+}
+
+.ft-subscription-payment-info li strong {
+	color: var(--ft-navy);
+}
+
+.ft-subscription-payment-info li span {
+	color: var(--ft-green-strong);
+	font-weight: 650;
+}
+
+.ft-payment-method-options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.ft-payment-method-btn {
+	padding: 11px 20px;
+	border: 1px solid var(--ft-line);
+	border-radius: 100px;
+	background: #fbfdfc;
+	color: var(--ft-ink);
+	font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+	font-size: 0.92rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.ft-payment-method-btn:hover {
+	border-color: var(--ft-green);
+}
+
+.ft-payment-method-btn.is-active {
+	border-color: var(--ft-green);
+	background: linear-gradient(135deg, var(--ft-green), var(--ft-green-strong));
+	color: white;
+	transform: translateY(-1px);
+}
+
 .ft-subscription-form-card {
 	padding: 30px;
 }

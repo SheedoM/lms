@@ -22,8 +22,12 @@
 		</nav>
 
 		<div class="ft-header-actions">
+			{% if is_guest %}
 			<a class="ft-button ft-button-secondary ft-button-small" href="/login">{{ settings.login_button_label }}</a>
 			<a class="ft-button ft-button-primary ft-button-small" href="/signup">{{ settings.signup_button_label }}</a>
+			{% else %}
+			<a class="ft-button ft-button-primary ft-button-small" href="/lms">المنصة التعليمية</a>
+			{% endif %}
 		</div>
 	</div>
 </header>
