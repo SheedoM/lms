@@ -5,6 +5,7 @@
 {% block head_include %}
 <meta name="description" content="{{ offering.short_description or settings.hero_description }}" />
 <link rel="stylesheet" href="/assets/lms/landing/landing.css" />
+<link rel="stylesheet" href="/assets/lms/landing/detail.css" />
 {% endblock %}
 
 {% block navbar %}{% endblock %}
@@ -29,7 +30,7 @@
 				</div>
 
 				<div class="ft-course-detail-copy">
-					<span class="ft-kicker">{{ offering.category }}</span>
+					<span class="ft-kicker">{{ offering.category_label }}</span>
 					<h1>{{ offering.title }}</h1>
 					{% if offering.short_description %}<p>{{ offering.short_description }}</p>{% endif %}
 					{% if offering.price and offering.access_type != 'Free' %}
