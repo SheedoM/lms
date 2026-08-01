@@ -1,0 +1,29 @@
+<article class="ft-course-card">
+	<a class="ft-course-cover" href="{{ offering.details_url }}" aria-label="{{ offering.title }}">
+		{% if offering.cover_image %}
+			<img src="{{ offering.cover_image }}" alt="{{ offering.title }}" loading="lazy" />
+		{% else %}
+			<div class="ft-course-cover-fallback">
+				<span>&lt;/&gt;</span>
+				<strong>{{ offering.title }}</strong>
+			</div>
+		{% endif %}
+		{% if offering.badge %}<span class="ft-course-badge">{{ offering.badge }}</span>{% endif %}
+	</a>
+	<div class="ft-course-card-body">
+		<a class="ft-course-title" href="{{ offering.details_url }}">{{ offering.title }}</a>
+		{% if offering.short_description %}<p>{{ offering.short_description }}</p>{% endif %}
+		{% if offering.price and offering.access_type != 'Free' %}
+			<div class="ft-course-price">
+				<strong>{{ offering.price|int }} {{ offering.currency or 'EGP' }}</strong>
+				{% if offering.original_price and offering.original_price > offering.price %}<del>{{ offering.original_price|int }}</del>{% endif %}
+			</div>
+		{% elif offering.access_type == 'Free' %}
+			<div class="ft-course-price"><strong>مجاني</strong></div>
+		{% endif %}
+		<div class="ft-course-actions">
+			<a class="ft-button ft-button-primary" href="{{ offering.action_url }}" {% if offering.action_disabled %}aria-disabled="true" tabindex="-1"{% endif %}>{{ offering.action_label }}</a>
+			<a class="ft-button ft-button-secondary" href="{{ offering.details_url }}">{{ offering.details_label }}</a>
+		</div>
+	</div>
+</article>

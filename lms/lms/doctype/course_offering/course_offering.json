@@ -1,0 +1,262 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "field:slug",
+ "creation": "2026-08-01 07:10:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "catalog_section",
+  "title",
+  "slug",
+  "category",
+  "cover_image",
+  "short_description",
+  "commercial_section",
+  "access_type",
+  "currency",
+  "price",
+  "original_price",
+  "badge",
+  "action_section",
+  "primary_action_type",
+  "primary_button_label",
+  "details_button_label",
+  "external_url",
+  "linked_lms_course",
+  "linked_batch",
+  "content_section",
+  "audience",
+  "learning_outcomes",
+  "course_content",
+  "study_method",
+  "included_items",
+  "display_section",
+  "display_order",
+  "featured",
+  "published"
+ ],
+ "fields": [
+  {
+   "fieldname": "catalog_section",
+   "fieldtype": "Section Break",
+   "label": "Catalogue"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Course Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "slug",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Slug",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Category",
+   "options": "Course Offering Category",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cover_image",
+   "fieldtype": "Attach Image",
+   "label": "Cover Image"
+  },
+  {
+   "fieldname": "short_description",
+   "fieldtype": "Small Text",
+   "label": "Short Description"
+  },
+  {
+   "fieldname": "commercial_section",
+   "fieldtype": "Section Break",
+   "label": "Pricing"
+  },
+  {
+   "default": "Paid",
+   "fieldname": "access_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Access Type",
+   "options": "Free\nPaid\nComing Soon",
+   "reqd": 1
+  },
+  {
+   "default": "EGP",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "default": "0",
+   "fieldname": "price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Price",
+   "options": "currency"
+  },
+  {
+   "default": "0",
+   "fieldname": "original_price",
+   "fieldtype": "Currency",
+   "label": "Original Price",
+   "options": "currency"
+  },
+  {
+   "fieldname": "badge",
+   "fieldtype": "Data",
+   "label": "Badge"
+  },
+  {
+   "fieldname": "action_section",
+   "fieldtype": "Section Break",
+   "label": "Primary Action"
+  },
+  {
+   "default": "Paid Subscription",
+   "fieldname": "primary_action_type",
+   "fieldtype": "Select",
+   "label": "Primary Action Type",
+   "options": "Free Enrollment\nPaid Subscription\nOpen LMS Course\nExternal Link\nComing Soon",
+   "reqd": 1
+  },
+  {
+   "description": "Optional. Leave empty to use the global label from Landing Page Settings.",
+   "fieldname": "primary_button_label",
+   "fieldtype": "Data",
+   "label": "Custom Primary Button Label"
+  },
+  {
+   "description": "Optional. Leave empty to use the global course details label.",
+   "fieldname": "details_button_label",
+   "fieldtype": "Data",
+   "label": "Custom Details Button Label"
+  },
+  {
+   "depends_on": "eval:doc.primary_action_type=='External Link'",
+   "fieldname": "external_url",
+   "fieldtype": "Data",
+   "label": "External URL"
+  },
+  {
+   "fieldname": "linked_lms_course",
+   "fieldtype": "Link",
+   "label": "Linked LMS Course",
+   "options": "LMS Course"
+  },
+  {
+   "fieldname": "linked_batch",
+   "fieldtype": "Link",
+   "label": "Linked Batch",
+   "options": "LMS Batch"
+  },
+  {
+   "fieldname": "content_section",
+   "fieldtype": "Section Break",
+   "label": "Public Course Details"
+  },
+  {
+   "fieldname": "audience",
+   "fieldtype": "Text Editor",
+   "label": "Who Is This Course For?"
+  },
+  {
+   "fieldname": "learning_outcomes",
+   "fieldtype": "Text Editor",
+   "label": "What Will Students Learn?"
+  },
+  {
+   "fieldname": "course_content",
+   "fieldtype": "Text Editor",
+   "label": "Course Content"
+  },
+  {
+   "fieldname": "study_method",
+   "fieldtype": "Text Editor",
+   "label": "Study Method"
+  },
+  {
+   "fieldname": "included_items",
+   "fieldtype": "Text Editor",
+   "label": "What Is Included?"
+  },
+  {
+   "fieldname": "display_section",
+   "fieldtype": "Section Break",
+   "label": "Publishing"
+  },
+  {
+   "default": "0",
+   "fieldname": "display_order",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Display Order"
+  },
+  {
+   "default": "0",
+   "fieldname": "featured",
+   "fieldtype": "Check",
+   "label": "Featured"
+  },
+  {
+   "default": "0",
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Published"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-01 07:10:00.000000",
+ "modified_by": "Administrator",
+ "module": "LMS",
+ "name": "Course Offering",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Moderator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "display_order",
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

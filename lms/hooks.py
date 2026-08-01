@@ -44,16 +44,16 @@ web_include_js = []
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
-# doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
-# doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
+# doctype_js = {"doctype": "public/js/doctype.js"}
+# doctype_list_js = {"doctype": "public/js/doctype_list.js"}
+# doctype_tree_js = {"doctype": "public/js/doctype_tree.js"}
+# doctype_calendar_js = {"doctype": "public/js/doctype_calendar.js"}
 
 # Home Pages
 # ----------
 
-# application home page (will override Website Settings)
-# home_page = "login"
+# The public FaragallahTech learning site owns the root URL.
+home_page = "index"
 
 # website user home page (by Role)
 # role_home_page = {
@@ -171,7 +171,7 @@ override_whitelisted_methods = {
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
 # override_doctype_dashboards = {
-# 	"Task": "lms.task.get_dashboard_data"
+# 	"Task": "public/js/doctype.js"
 # }
 
 # exempt linked doctypes from being automatically cancelled
@@ -182,6 +182,9 @@ override_whitelisted_methods = {
 website_route_rules = [
 	{"from_route": f"/{get_lms_path()}/<path:app_path>", "to_route": "_lms"},
 	{"from_route": f"/{get_lms_path()}", "to_route": "_lms"},
+	{"from_route": "/courses/<slug>", "to_route": "course"},
+	{"from_route": "/subscribe/<slug>", "to_route": "subscribe"},
+	{"from_route": "/enroll/<slug>", "to_route": "enroll"},
 	{
 		"from_route": "/courses/<course_name>/<certificate_id>",
 		"to_route": "certificate",
@@ -190,11 +193,7 @@ website_route_rules = [
 
 website_redirects = [
 	{"source": "/update-profile", "target": "/edit-profile"},
-	{"source": "/courses", "target": f"/{get_lms_path()}/courses"},
-	{
-		"source": r"^/courses/.*$",
-		"target": f"/{get_lms_path()}/courses",
-	},
+	{"source": "/courses", "target": "/#courses"},
 	{"source": "/batches", "target": f"/{get_lms_path()}/batches"},
 	{
 		"source": r"/batches/(.*)",
