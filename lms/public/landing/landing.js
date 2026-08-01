@@ -56,6 +56,13 @@
 		let language = 'python'
 		let pythonWorker = null
 		let pythonWorkerUrl = null
+		let pythonWorkerReady = false
+		let pythonPreloadStarted = false
+
+		const PYTHON_INIT_TIMEOUT_MS = 75000
+		const PYTHON_EXECUTION_TIMEOUT_MS = 10000
+
+		schedulePythonPreload()
 
 		languageButtons.forEach((button) => {
 			button.addEventListener('click', () => {
@@ -108,7 +115,7 @@
 			runButton.textContent = isBusy ? 'جاري التشغيل…' : 'تشغيل ▶'
 		}
 
-		function runPython(code) {
+		function ensurePythonWorker() {
 			if (!pythonWorker) {
 				const source = createPythonWorkerSource(
 					window.ftLandingConfig?.pyodideIndexUrl ||
@@ -119,16 +126,68 @@
 				)
 				pythonWorker = new Worker(pythonWorkerUrl)
 			}
+			return pythonWorker
+		}
+
+		function schedulePythonPreload() {
+			const trigger = () => preloadPythonWorker()
+			if ('requestIdleCallback' in window) {
+				window.requestIdleCallback(trigger, { timeout: 4000 })
+			} else {
+				window.setTimeout(trigger, 2000)
+			}
+		}
+
+		function preloadPythonWorker() {
+			if (pythonWorkerReady || pythonPreloadStarted) return
+			pythonPreloadStarted = true
+			const worker = ensurePythonWorker()
+			worker.addEventListener('message', function onMessage(event) {
+				if (event.data?.type === 'pyodide-ready') {
+					pythonWorkerReady = true
+					worker.removeEventListener('message', onMessage)
+				}
+			})
+			worker.postMessage({ type: 'preload' })
+		}
+
+		function runPython(code) {
+			const worker = ensurePythonWorker()
 
 			return new Promise((resolve, reject) => {
-				const timer = window.setTimeout(() => {
-					stopPythonWorker()
-					reject(new Error('الكود استغرق وقتًا أطول من المسموح وتم إيقافه.'))
-				}, 30000)
+				// Reusing an already-initialized worker only needs the strict
+				// execution timeout; a cold worker gets a much longer budget
+				// since downloading + compiling the Pyodide WASM runtime can
+				// legitimately take well over the old single 30s timeout.
+				let timer = window.setTimeout(
+					() => {
+						stopPythonWorker()
+						reject(
+							new Error(
+								pythonWorkerReady
+									? 'الكود استغرق وقتًا أطول من المسموح وتم إيقافه.'
+									: 'تعذر تجهيز بيئة Python في الوقت المتاح. حاول تاني.'
+							)
+						)
+					},
+					pythonWorkerReady ? PYTHON_EXECUTION_TIMEOUT_MS : PYTHON_INIT_TIMEOUT_MS
+				)
 
-				pythonWorker.onmessage = ({ data }) => {
+				worker.onmessage = ({ data }) => {
 					if (data.type === 'status') {
 						output.textContent = data.message
+						return
+					}
+					if (data.type === 'pyodide-ready') {
+						// Initialization finished; switch to the strict
+						// execution timeout for the actual code run so a
+						// user's infinite loop still gets cut off quickly.
+						pythonWorkerReady = true
+						window.clearTimeout(timer)
+						timer = window.setTimeout(() => {
+							stopPythonWorker()
+							reject(new Error('الكود استغرق وقتًا أطول من المسموح وتم إيقافه.'))
+						}, PYTHON_EXECUTION_TIMEOUT_MS)
 						return
 					}
 					window.clearTimeout(timer)
@@ -138,18 +197,20 @@
 						reject(new Error(data.message || 'حصل خطأ أثناء تشغيل Python.'))
 					}
 				}
-				pythonWorker.onerror = (event) => {
+				worker.onerror = (event) => {
 					window.clearTimeout(timer)
 					stopPythonWorker()
 					reject(new Error(event.message || 'تعذر تشغيل بيئة Python.'))
 				}
-				pythonWorker.postMessage({ code })
+				worker.postMessage({ type: 'run', code })
 			})
 		}
 
 		function stopPythonWorker() {
 			pythonWorker?.terminate()
 			pythonWorker = null
+			pythonWorkerReady = false
+			pythonPreloadStarted = false
 			if (pythonWorkerUrl) URL.revokeObjectURL(pythonWorkerUrl)
 			pythonWorkerUrl = null
 		}
@@ -158,14 +219,30 @@
 	function createPythonWorkerSource(indexUrl) {
 		return `
 let pyodide;
+let pyodideLoading = null;
 const indexURL = ${JSON.stringify(indexUrl)};
-self.onmessage = async ({ data }) => {
-  try {
-    if (!pyodide) {
+
+function ensurePyodide() {
+  if (pyodide) return Promise.resolve(pyodide);
+  if (!pyodideLoading) {
+    pyodideLoading = (async () => {
       self.postMessage({ type: 'status', message: 'بيتم تحميل بيئة Python لأول مرة…' });
       importScripts(indexURL + 'pyodide.js');
       pyodide = await loadPyodide({ indexURL });
+      self.postMessage({ type: 'pyodide-ready' });
+      return pyodide;
+    })();
+  }
+  return pyodideLoading;
+}
+
+self.onmessage = async ({ data }) => {
+  try {
+    if (data.type === 'preload') {
+      await ensurePyodide();
+      return;
     }
+    await ensurePyodide();
     let stdout = '';
     let stderr = '';
     pyodide.setStdout({ batched: text => { stdout += text + '\\n'; } });
