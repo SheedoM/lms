@@ -94,7 +94,7 @@
   {"fieldname": "lab_section", "fieldtype": "Section Break", "label": "Public Coding Lab"},
   {"default": "جرب البرمجة", "fieldname": "lab_heading", "fieldtype": "Data", "label": "Heading"},
   {"default": "اكتب الكود وشوف النتيجة مباشرة.", "fieldname": "lab_description", "fieldtype": "Small Text", "label": "Description"},
-  {"default": "name = input('اكتب اسمك: ')\nprint(f'أهلًا يا {name} 👋')", "fieldname": "python_starter_code", "fieldtype": "Code", "label": "Python Starter Code", "options": "Python"},
+  {"default": "name = 'FaragallahTech'\nprint(f'أهلًا يا {name} 👋')", "fieldname": "python_starter_code", "fieldtype": "Code", "label": "Python Starter Code", "options": "Python"},
   {"default": "const name = 'FaragallahTech';\nconsole.log(`أهلًا يا ${name} 👋`);", "fieldname": "javascript_starter_code", "fieldtype": "Code", "label": "JavaScript Starter Code", "options": "JavaScript"},
   {"fieldname": "about_section", "fieldtype": "Section Break", "label": "Instructor"},
   {"default": "عن المدرب", "fieldname": "about_heading", "fieldtype": "Data", "label": "Section Heading"},
