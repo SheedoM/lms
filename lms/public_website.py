@@ -4,7 +4,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import flt, now_datetime
 
 
 DEFAULT_SETTINGS = frappe._dict(
@@ -165,6 +165,9 @@ def get_public_offering(slug, settings=None):
 	settings = settings or get_public_settings()
 	doc = frappe.get_doc("Course Offering", name)
 	result = serialize_offering(doc.as_dict(), settings)
+	result.category_label = (
+		frappe.db.get_value("Course Offering Category", doc.category, "category_name") or doc.category
+	)
 	for fieldname in (
 		"audience",
 		"learning_outcomes",
@@ -222,6 +225,8 @@ def apply_common_context(context):
 	context.hide_login = True
 	context.settings = get_public_settings()
 	context.is_guest = frappe.session.user == "Guest"
+	context.current_year = now_datetime().year
+	context.csrf_token = frappe.sessions.get_csrf_token()
 	return context
 
 
@@ -242,3 +247,77 @@ def get_course_context(context, slug):
 		raise frappe.DoesNotExistError(_("Course not found"))
 	context.page_title = context.offering.title
 	return context
+
+
+def get_subscription_context(context, slug):
+	apply_common_context(context)
+	context.offering = get_public_offering(slug, context.settings)
+	if not context.offering:
+		raise frappe.DoesNotExistError(_("Course not found"))
+
+	if frappe.session.user == "Guest":
+		redirect_to = quote(f"/subscribe/{slug}", safe="")
+		frappe.local.flags.redirect_location = f"/login?redirect-to={redirect_to}"
+		raise frappe.Redirect
+
+	context.existing_request = None
+	if frappe.db.table_exists("Course Subscription Request"):
+		context.existing_request = frappe.db.get_value(
+			"Course Subscription Request",
+			{
+				"offering": context.offering.name,
+				"applicant": frappe.session.user,
+				"status": "Pending Review",
+			},
+			["name", "status", "creation"],
+			as_dict=True,
+		)
+	return context
+
+
+@frappe.whitelist()
+def submit_subscription_request(
+	offering_slug: str,
+	payment_method: str,
+	sender_phone: str,
+	payment_screenshot: str,
+	notes: str | None = None,
+):
+	if frappe.session.user == "Guest":
+		frappe.throw(_("Please log in first."), frappe.PermissionError)
+
+	offering_name = frappe.db.get_value(
+		"Course Offering", {"slug": offering_slug, "published": 1}, "name"
+	)
+	if not offering_name:
+		frappe.throw(_("Course not found."))
+
+	payment_method = (payment_method or "").strip()
+	sender_phone = (sender_phone or "").strip()
+	payment_screenshot = (payment_screenshot or "").strip()
+	if not payment_method or not sender_phone or not payment_screenshot:
+		frappe.throw(_("Please complete the required payment details."))
+	if not payment_screenshot.startswith(("/files/", "/private/files/")):
+		frappe.throw(_("Invalid payment screenshot."))
+
+	existing = frappe.db.get_value(
+		"Course Subscription Request",
+		{
+			"offering": offering_name,
+			"applicant": frappe.session.user,
+			"status": "Pending Review",
+		},
+		"name",
+	)
+	if existing:
+		return {"name": existing, "already_exists": True}
+
+	doc = frappe.new_doc("Course Subscription Request")
+	doc.offering = offering_name
+	doc.applicant = frappe.session.user
+	doc.payment_method = payment_method
+	doc.sender_phone = sender_phone
+	doc.payment_screenshot = payment_screenshot
+	doc.notes = (notes or "").strip()
+	doc.insert(ignore_permissions=True)
+	return {"name": doc.name, "already_exists": False}
