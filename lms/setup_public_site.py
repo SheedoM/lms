@@ -57,12 +57,12 @@ MEDIA_CANDIDATES = {
 	"about": ["About me.jpg", "about.jpg", "about.webp"],
 	"offline_1": ["Offline_Sessions (3).jpg", "session-offline-1.jpg", "session-offline-1.webp"],
 	"offline_2": ["Offline_Sessions (2).jpg", "session-offline-2.jpg", "session-offline-2.webp"],
-	"online_1": ["image(8).png", "session-online-1.png", "session-online-1.webp"],
-	"online_2": ["image(9).png", "session-online-2.png", "session-online-2.webp"],
+	"online_1": ["image(9).png", "session-online-1.png", "session-online-1.webp"],
+	"online_2": ["image(10).png", "session-online-2.png", "session-online-2.webp"],
 	"partner_isky": ["iskytech.png", "partner-isky.png", "partner-isky.webp"],
 	"partner_ai_school": ["ai school.png", "partner-ai-school.png", "partner-ai-school.webp"],
 	"partner_ischool": ["ischool.png", "partner-ischool.png", "partner-ischool.webp"],
-	"partner_mcit": ["image(10).png", "partner-mcit.png", "partner-mcit.webp"],
+	"partner_mcit": ["image(8).png", "partner-mcit.png", "partner-mcit.webp"],
 	"code_plus_plus": ["Ad design with sky blue shirt.png", "course-code-plus-plus.png", "course-code-plus-plus.webp"],
 }
 
