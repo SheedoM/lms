@@ -59,7 +59,14 @@
 					</div>
 					<div class="ft-project-preview" aria-hidden="true">
 						<div class="ft-project-preview-screen">
-							<span></span><span></span><span></span>
+							<div class="ft-project-preview-bar">
+								<span></span><span></span><span></span>
+							</div>
+							<div class="ft-project-preview-body">
+								<div class="ft-project-preview-row"><i></i><b></b></div>
+								<div class="ft-project-preview-row"><i></i><b></b></div>
+								<div class="ft-project-preview-row"><i></i><b></b></div>
+							</div>
 						</div>
 						<strong>Mini Project</strong>
 						<small>من الفكرة للتطبيق</small>
@@ -149,49 +156,58 @@
 
 		<section class="ft-section ft-about-section" id="about">
 			<div class="ft-container">
-				<div class="ft-about-layout" data-reveal>
-					<div class="ft-about-portrait-column">
-						{% if settings.instructor_image %}
-							<img src="{{ settings.instructor_image }}" alt="{{ settings.instructor_name }}" class="ft-about-portrait" loading="lazy" />
-						{% else %}
-							<div class="ft-about-placeholder">SF</div>
-						{% endif %}
+				<div class="ft-section-heading" data-reveal>
+					<span class="ft-section-icon">◉</span>
+					<h2>{{ settings.about_heading }} <span class="ft-about-name-accent">{{ settings.instructor_name }}</span></h2>
+				</div>
+
+				<div class="ft-about-card" data-reveal>
+					<div class="ft-about-intro">
+						<div class="ft-about-portrait-column">
+							<div class="ft-about-portrait-wrap">
+								<div class="ft-circuit-orbit" aria-hidden="true"></div>
+								{% if settings.instructor_image %}
+									<img src="{{ settings.instructor_image }}" alt="{{ settings.instructor_name }}" class="ft-about-portrait" />
+								{% else %}
+									<div class="ft-about-placeholder">SF</div>
+								{% endif %}
+							</div>
+						</div>
+
+						<div class="ft-about-copy">
+							<h2>{{ settings.instructor_name }}</h2>
+							<strong>{{ settings.instructor_role }}</strong>
+							<div class="ft-rich-text">{{ settings.about_text|safe }}</div>
+						</div>
 					</div>
 
-					<div class="ft-about-copy">
-						<span class="ft-kicker">{{ settings.about_heading }}</span>
-						<h2>{{ settings.instructor_name }}</h2>
-						<strong>{{ settings.instructor_role }}</strong>
-						<div class="ft-rich-text">{{ settings.about_text|safe }}</div>
-					</div>
-
-					<div class="ft-session-gallery-column">
-						<h3>{{ settings.gallery_heading }}</h3>
-						{% if settings.gallery_items %}
-						<div class="ft-session-gallery" data-reveal-stagger>
-							{% for item in settings.gallery_items[:4] %}
-							<figure>
-								<img src="{{ item.image }}" alt="{{ item.caption or settings.gallery_heading }}" loading="lazy" />
-								{% if item.caption %}<figcaption>{{ item.caption }}</figcaption>{% endif %}
-							</figure>
+					<div class="ft-partners">
+						<h3>{{ settings.partners_heading }}</h3>
+						{% if settings.partners %}
+						<div class="ft-partner-strip" data-reveal-stagger>
+							{% for partner in settings.partners %}
+								{% if partner.website_url %}<a href="{{ partner.website_url }}" target="_blank" rel="noreferrer">{% else %}<div>{% endif %}
+									<img src="{{ partner.logo }}" alt="{{ partner.organization_name }}" loading="lazy" />
+								{% if partner.website_url %}</a>{% else %}</div>{% endif %}
 							{% endfor %}
 						</div>
-						{% else %}
-						<div class="ft-gallery-placeholder"><span>صور الجلسات</span></div>
 						{% endif %}
 					</div>
 				</div>
 
-				<div class="ft-partners" data-reveal>
-					<h3>{{ settings.partners_heading }}</h3>
-					{% if settings.partners %}
-					<div class="ft-partner-strip" data-reveal-stagger>
-						{% for partner in settings.partners %}
-							{% if partner.website_url %}<a href="{{ partner.website_url }}" target="_blank" rel="noreferrer">{% else %}<div>{% endif %}
-								<img src="{{ partner.logo }}" alt="{{ partner.organization_name }}" loading="lazy" />
-							{% if partner.website_url %}</a>{% else %}</div>{% endif %}
+				<div class="ft-session-gallery-full" data-reveal>
+					<h3>{{ settings.gallery_heading }}</h3>
+					{% if settings.gallery_items %}
+					<div class="ft-session-gallery" data-reveal-stagger>
+						{% for item in settings.gallery_items[:4] %}
+						<figure>
+							<img src="{{ item.image }}" alt="{{ item.caption or settings.gallery_heading }}" loading="lazy" />
+							{% if item.caption %}<figcaption>{{ item.caption }}</figcaption>{% endif %}
+						</figure>
 						{% endfor %}
 					</div>
+					{% else %}
+					<div class="ft-gallery-placeholder"><span>صور الجلسات</span></div>
 					{% endif %}
 				</div>
 			</div>

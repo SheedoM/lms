@@ -9,7 +9,7 @@
 		>
 			<UserDropdown :isCollapsed="sidebarStore.isSidebarCollapsed" />
 			<div class="flex flex-col" v-if="sidebarSettings.data">
-				<div v-for="link in sidebarLinks" class="mx-2 my-2.5">
+				<div v-for="link in sidebarLinks" class="mx-2 my-1">
 					<div
 						v-if="!link.hideLabel"
 						class="mb-2 mt-3 flex cursor-pointer gap-1.5 px-1 text-base-medium text-ink-gray-5 transition-all duration-300 ease-in-out"

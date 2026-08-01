@@ -539,33 +539,68 @@ main .container {
 }
 
 .ft-project-preview {
-	display: grid;
-	grid-template-columns: 86px 1fr;
-	align-items: center;
-	gap: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
 	padding: 12px;
 	text-align: right;
 }
 
 .ft-project-preview-screen {
-	display: flex;
-	align-items: end;
-	gap: 5px;
-	height: 62px;
-	padding: 10px;
+	overflow: hidden;
 	border-radius: 9px;
 	background: linear-gradient(145deg, #eaf8f1, #f8fcfa);
 }
 
-.ft-project-preview-screen span {
-	flex: 1;
-	border-radius: 4px 4px 0 0;
-	background: var(--ft-green);
+.ft-project-preview-bar {
+	display: flex;
+	gap: 4px;
+	padding: 7px 9px;
+	background: rgba(34, 160, 107, 0.12);
 }
 
-.ft-project-preview-screen span:nth-child(1) { height: 35%; }
-.ft-project-preview-screen span:nth-child(2) { height: 75%; }
-.ft-project-preview-screen span:nth-child(3) { height: 52%; }
+.ft-project-preview-bar span {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--ft-green);
+	opacity: 0.55;
+}
+
+.ft-project-preview-bar span:first-child {
+	opacity: 0.9;
+}
+
+.ft-project-preview-body {
+	display: grid;
+	gap: 6px;
+	padding: 10px 9px;
+}
+
+.ft-project-preview-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.ft-project-preview-row i {
+	width: 14px;
+	height: 14px;
+	border-radius: 5px;
+	background: var(--ft-green);
+	opacity: 0.75;
+	flex-shrink: 0;
+}
+
+.ft-project-preview-row b {
+	flex: 1;
+	height: 7px;
+	border-radius: 4px;
+	background: rgba(9, 71, 51, 0.18);
+}
+
+.ft-project-preview-row:nth-child(2) b { max-width: 70%; }
+.ft-project-preview-row:nth-child(3) b { max-width: 45%; }
 
 .ft-project-preview strong,
 .ft-project-preview small {
@@ -603,6 +638,10 @@ main .container {
 	color: var(--ft-muted);
 }
 
+.ft-about-name-accent {
+	color: var(--ft-green-strong);
+}
+
 .ft-section-icon {
 	display: inline-grid;
 	place-items: center;
@@ -618,8 +657,8 @@ main .container {
 
 .ft-course-catalogue,
 .ft-public-lab,
-.ft-about-layout,
-.ft-partners,
+.ft-about-card,
+.ft-session-gallery-full,
 .ft-faq-container {
 	border: 1px solid var(--ft-line);
 	border-radius: var(--ft-radius);
@@ -963,66 +1002,66 @@ main .container {
 	padding-top: 28px;
 }
 
-.ft-about-layout {
+.ft-about-card {
+	padding: 26px;
+}
+
+.ft-about-intro {
 	display: grid;
-	/* Named areas keep LEFT (portrait + intro, stacked) and RIGHT (session
-	   gallery) explicit instead of relying on source order under RTL, where
-	   the first grid column lands on the right — easy to get backwards. */
-	grid-template-columns: minmax(300px, 0.95fr) minmax(320px, 1.2fr);
-	grid-template-areas:
-		"gallery portrait"
-		"gallery copy";
-	align-items: stretch;
-	gap: 22px;
-	padding: 22px;
-}
-
-.ft-about-portrait-column {
-	grid-area: portrait;
-}
-
-.ft-about-copy {
-	grid-area: copy;
-}
-
-.ft-session-gallery-column {
-	grid-area: gallery;
+	grid-template-columns: minmax(220px, 300px) 1fr;
+	align-items: center;
+	gap: 26px;
 }
 
 .ft-about-portrait-column,
-.ft-about-copy,
-.ft-session-gallery-column {
+.ft-about-copy {
 	min-width: 0;
 }
 
 .ft-about-portrait-column {
 	display: grid;
 	place-items: center;
-	border-radius: 17px;
-	background: linear-gradient(145deg, #edf8f3, #fbfdfc);
+}
+
+.ft-about-portrait-wrap {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: min(100%, 220px);
+	height: 220px;
+	margin-inline: auto;
+}
+
+.ft-about-portrait-wrap .ft-circuit-orbit {
+	inset: -8px;
 }
 
 .ft-about-portrait {
+	position: relative;
+	z-index: 2;
 	width: 100%;
-	max-height: 360px;
-	object-fit: contain;
-	border-radius: 16px;
+	height: 100%;
+	border-radius: 50%;
+	object-fit: cover;
+	filter: drop-shadow(0 12px 20px rgba(8, 42, 54, 0.14));
 }
 
 .ft-about-placeholder {
+	position: relative;
+	z-index: 2;
+	display: grid;
+	place-items: center;
 	width: 180px;
 	height: 180px;
 	border-radius: 50%;
+	background: var(--ft-soft);
+	color: var(--ft-green-strong);
+	font-weight: 700;
 }
 
 .ft-about-copy {
-	align-self: center;
 	padding: 12px 0;
-}
-
-.ft-about-copy .ft-kicker {
-	font-size: 0.95rem;
-	color: var(--ft-green-strong);
+	text-align: right;
 }
 
 .ft-about-copy h2 {
@@ -1045,7 +1084,7 @@ main .container {
 	margin-bottom: 0;
 }
 
-.ft-session-gallery-column h3,
+.ft-session-gallery-full h3,
 .ft-partners h3 {
 	margin-bottom: 14px;
 	color: var(--ft-navy);
@@ -1055,7 +1094,7 @@ main .container {
 
 .ft-session-gallery {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: repeat(4, minmax(0, 1fr));
 	gap: 10px;
 }
 
@@ -1065,7 +1104,7 @@ main .container {
 	overflow: hidden;
 	border-radius: 13px;
 	background: #eaf1ee;
-	aspect-ratio: 4 / 3;
+	aspect-ratio: 16 / 9;
 }
 
 .ft-session-gallery img {
@@ -1102,6 +1141,12 @@ main .container {
 }
 
 .ft-partners {
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid var(--ft-line);
+}
+
+.ft-session-gallery-full {
 	margin-top: 16px;
 	padding: 20px;
 }
@@ -1438,17 +1483,6 @@ main .container {
 		gap: 20px;
 	}
 
-	.ft-about-layout {
-		grid-template-columns: 230px 1fr;
-	}
-
-	.ft-session-gallery-column {
-		grid-column: 1 / -1;
-	}
-
-	.ft-session-gallery {
-		grid-template-columns: repeat(4, 1fr);
-	}
 }
 
 @media (max-width: 820px) {
@@ -1515,15 +1549,12 @@ main .container {
 		border-bottom: 1px solid rgba(255, 255, 255, 0.09);
 	}
 
-	.ft-about-layout {
+	.ft-about-intro {
 		grid-template-columns: 1fr;
-		/* Session photos read as more inviting than a wall of biography text
-		   on a small screen, so they sit right under the portrait instead of
-		   waiting until after the full "about" copy. */
-		grid-template-areas:
-			"portrait"
-			"gallery"
-			"copy";
+		text-align: center;
+	}
+
+	.ft-about-copy {
 		text-align: center;
 	}
 
