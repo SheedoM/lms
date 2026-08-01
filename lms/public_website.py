@@ -34,7 +34,7 @@ DEFAULT_SETTINGS = frappe._dict(
 		"coming_soon_button_label": "قريبًا",
 		"lab_heading": "جرب البرمجة",
 		"lab_description": "اكتب الكود وشوف النتيجة مباشرة.",
-		"python_starter_code": "name = input('اكتب اسمك: ')\nprint(f'أهلًا يا {name} 👋')",
+		"python_starter_code": "name = 'FaragallahTech'\nprint(f'أهلًا يا {name} 👋')",
 		"javascript_starter_code": "const name = 'FaragallahTech';\nconsole.log(`أهلًا يا ${name} 👋`);",
 		"about_heading": "عن المدرب",
 		"instructor_name": "شادي فرج الله",
@@ -254,6 +254,8 @@ def get_subscription_context(context, slug):
 	context.offering = get_public_offering(slug, context.settings)
 	if not context.offering:
 		raise frappe.DoesNotExistError(_("Course not found"))
+	if context.offering.primary_action_type != "Paid Subscription":
+		frappe.throw(_("This course does not accept paid subscription requests."))
 
 	if frappe.session.user == "Guest":
 		redirect_to = quote(f"/subscribe/{slug}", safe="")
@@ -286,11 +288,16 @@ def submit_subscription_request(
 	if frappe.session.user == "Guest":
 		frappe.throw(_("Please log in first."), frappe.PermissionError)
 
-	offering_name = frappe.db.get_value(
-		"Course Offering", {"slug": offering_slug, "published": 1}, "name"
+	offering = frappe.db.get_value(
+		"Course Offering",
+		{"slug": offering_slug, "published": 1},
+		["name", "primary_action_type"],
+		as_dict=True,
 	)
-	if not offering_name:
+	if not offering:
 		frappe.throw(_("Course not found."))
+	if offering.primary_action_type != "Paid Subscription":
+		frappe.throw(_("This course does not accept paid subscription requests."))
 
 	payment_method = (payment_method or "").strip()
 	sender_phone = (sender_phone or "").strip()
@@ -299,11 +306,15 @@ def submit_subscription_request(
 		frappe.throw(_("Please complete the required payment details."))
 	if not payment_screenshot.startswith(("/files/", "/private/files/")):
 		frappe.throw(_("Invalid payment screenshot."))
+	if not frappe.db.exists(
+		"File", {"file_url": payment_screenshot, "owner": frappe.session.user, "is_private": 1}
+	):
+		frappe.throw(_("The payment screenshot could not be verified."))
 
 	existing = frappe.db.get_value(
 		"Course Subscription Request",
 		{
-			"offering": offering_name,
+			"offering": offering.name,
 			"applicant": frappe.session.user,
 			"status": "Pending Review",
 		},
@@ -313,7 +324,7 @@ def submit_subscription_request(
 		return {"name": existing, "already_exists": True}
 
 	doc = frappe.new_doc("Course Subscription Request")
-	doc.offering = offering_name
+	doc.offering = offering.name
 	doc.applicant = frappe.session.user
 	doc.payment_method = payment_method
 	doc.sender_phone = sender_phone
