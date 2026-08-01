@@ -121,7 +121,7 @@ function handleClick(): void {
 		return
 	}
 	if (props.link.to && router.hasRoute(props.link.to)) {
-		router.push({ name: props.link.to })
+		router.push({ name: props.link.to, params: props.link.params })
 	} else if (props.link.to?.includes('@')) {
 		showContactForm.value = true
 	} else if (props.link.to) {

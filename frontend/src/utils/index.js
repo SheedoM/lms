@@ -532,6 +532,16 @@ const getSidebarItems = (forMobile = false) => {
 					},
 				},
 				{
+					label: 'My Profile',
+					icon: 'User',
+					to: 'Profile',
+					params: { username: userResource?.data?.username },
+					activeFor: ['Profile'],
+					condition: () => {
+						return !forMobile && userResource?.data?.username
+					},
+				},
+				{
 					label: 'Search',
 					icon: 'Search',
 					action: 'commandPalette',
