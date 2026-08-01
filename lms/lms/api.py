@@ -2221,6 +2221,7 @@ def get_profile_details(username: str):
 			"name",
 			"username",
 			"user_image",
+			"mobile_no",
 			"bio",
 			"headline",
 			"language",

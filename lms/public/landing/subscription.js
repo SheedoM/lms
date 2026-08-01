@@ -46,6 +46,7 @@
 				offering_slug: form.dataset.offeringSlug,
 				payment_method: String(data.get('payment_method') || '').trim(),
 				sender_phone: String(data.get('sender_phone') || '').trim(),
+				guardian_phone: String(data.get('guardian_phone') || '').trim(),
 				payment_screenshot: fileUrl,
 				notes: String(data.get('notes') || '').trim(),
 			})

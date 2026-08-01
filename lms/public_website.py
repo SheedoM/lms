@@ -369,6 +369,7 @@ def submit_subscription_request(
 	offering_slug: str,
 	payment_method: str,
 	sender_phone: str,
+	guardian_phone: str,
 	payment_screenshot: str,
 	notes: str | None = None,
 ):
@@ -388,8 +389,9 @@ def submit_subscription_request(
 
 	payment_method = (payment_method or "").strip()
 	sender_phone = (sender_phone or "").strip()
+	guardian_phone = (guardian_phone or "").strip()
 	payment_screenshot = (payment_screenshot or "").strip()
-	if not payment_method or not sender_phone or not payment_screenshot:
+	if not payment_method or not sender_phone or not guardian_phone or not payment_screenshot:
 		frappe.throw(_("Please complete the required payment details."))
 
 	# Only enforce this once at least one method is configured, so a fresh
@@ -425,6 +427,7 @@ def submit_subscription_request(
 	doc.applicant = frappe.session.user
 	doc.payment_method = payment_method
 	doc.sender_phone = sender_phone
+	doc.guardian_phone = guardian_phone
 	doc.payment_screenshot = payment_screenshot
 	doc.notes = (notes or "").strip()
 	doc.insert(ignore_permissions=True)
@@ -466,6 +469,7 @@ def public_signup(
 	email: str,
 	password: str,
 	confirm_password: str,
+	phone: str,
 	redirect_to: str | None = None,
 ):
 	"""Direct, immediate self-service signup for the public site.
@@ -497,12 +501,17 @@ def public_signup(
 	if frappe.db.exists("User", email):
 		frappe.throw(_("An account with this email already exists. Please log in instead."))
 
+	phone = (phone or "").strip()
+	if not phone:
+		frappe.throw(_("Please enter your phone number."))
+
 	try:
 		user = frappe.get_doc(
 			{
 				"doctype": "User",
 				"email": email,
 				"first_name": escape_html(full_name),
+				"mobile_no": phone,
 				"enabled": 1,
 				"new_password": password,
 				"user_type": "Website User",

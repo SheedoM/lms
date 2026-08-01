@@ -43,6 +43,10 @@
 								:required="true"
 							/>
 							<FormControl
+								v-model="profile.mobile_no"
+								:label="__('Phone Number')"
+							/>
+							<FormControl
 								v-if="!isPureStudent"
 								v-model="profile.headline"
 								:label="__('Headline')"
@@ -118,6 +122,7 @@ const isPureStudent = computed(() => isPureStudentData(userResource?.data))
 const profile = reactive({
 	first_name: '',
 	last_name: '',
+	mobile_no: '',
 	headline: '',
 	bio: '',
 	image: '',
@@ -205,6 +210,7 @@ watch(
 		if (newVal) {
 			profile.first_name = newVal.first_name
 			profile.last_name = newVal.last_name
+			profile.mobile_no = newVal.mobile_no
 			profile.headline = newVal.headline
 			profile.bio = newVal.bio
 			profile.open_to = newVal.open_to

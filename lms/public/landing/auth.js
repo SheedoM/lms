@@ -106,6 +106,7 @@
 
 			const full_name = signupForm.full_name.value.trim()
 			const email = signupForm.email.value.trim()
+			const phone = signupForm.phone.value.trim()
 			const password = signupForm.password.value
 			const confirm_password = signupForm.confirm_password.value
 			const redirect_to = signupForm.redirect_to.value
@@ -116,6 +117,10 @@
 			}
 			if (!email) {
 				showAlert(signupForm, 'من فضلك أدخل بريد إلكتروني صحيح.')
+				return
+			}
+			if (!phone) {
+				showAlert(signupForm, 'من فضلك أدخل رقم الهاتف.')
 				return
 			}
 			if (password.length < 8) {
@@ -132,6 +137,7 @@
 				const data = await callApi('lms.public_website.public_signup', {
 					full_name,
 					email,
+					phone,
 					password,
 					confirm_password,
 					redirect_to,
