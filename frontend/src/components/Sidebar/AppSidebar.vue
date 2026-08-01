@@ -8,12 +8,6 @@
 			:class="sidebarStore.isSidebarCollapsed ? 'items-center' : ''"
 		>
 			<UserDropdown :isCollapsed="sidebarStore.isSidebarCollapsed" />
-			<div
-				v-if="!sidebarStore.isSidebarCollapsed"
-				class="mx-3.5 mb-1 mt-2"
-			>
-				<LanguageToggle />
-			</div>
 			<div class="flex flex-col" v-if="sidebarSettings.data">
 				<div v-for="link in sidebarLinks" class="mx-2 my-2.5">
 					<div
@@ -310,7 +304,6 @@ import UserDropdown from '@/components/Sidebar/UserDropdown.vue'
 import CollapseSidebar from '@/components/Icons/CollapseSidebar.vue'
 import SidebarLink from '@/components/Sidebar/SidebarLink.vue'
 import CommandPalette from '@/components/CommandPalette/CommandPalette.vue'
-import LanguageToggle from '@/components/LanguageToggle.vue'
 import { isPureStudentData } from '@/utils/studentExperience'
 
 const { user } = sessionStore()

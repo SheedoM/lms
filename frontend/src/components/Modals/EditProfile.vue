@@ -19,10 +19,7 @@
 		</template>
 		<template #default>
 			<div class="text-base">
-				<div
-					class="grid gap-10"
-					:class="isPureStudent ? 'grid-cols-1 max-w-md' : 'grid-cols-2'"
-				>
+				<div class="grid grid-cols-2 gap-10">
 					<div class="space-y-4">
 						<div class="space-y-4">
 							<Uploader
@@ -59,26 +56,23 @@
 									:label="__('Twitter ID')"
 								/>
 							</template>
-
-							<FormControl
-								v-if="isPureStudent"
-								type="textarea"
-								v-model="profile.bio"
-								:label="__('Bio')"
-								:placeholder="__('Tell us a little about yourself (optional)')"
-								:rows="6"
-							/>
 						</div>
 					</div>
-					<div v-if="!isPureStudent" class="space-y-4">
+					<div class="space-y-4">
 						<FormControl
+							v-if="!isPureStudent"
 							v-model="profile.open_to"
 							type="select"
 							:options="[' ', 'Work', 'Hiring']"
 							:label="__('Open to')"
 							:placeholder="__('Looking for new work or hiring talent?')"
 						/>
-						<div>
+						<Link
+							:label="__('Language')"
+							v-model="profile.language"
+							doctype="Language"
+						/>
+						<div v-if="!isPureStudent">
 							<div class="mb-1.5 text-p-sm-medium text-ink-gray-7">
 								{{ __('Bio') }}
 							</div>
@@ -106,12 +100,14 @@ import {
 } from 'frappe-ui'
 import { computed, reactive, ref, watch } from 'vue'
 import { sanitizeHTML } from '@/utils'
+import Link from '@/components/Controls/Link.vue'
 import RichTextEditor from '@/components/RichTextEditor.vue'
 import { usersStore } from '@/stores/user'
 import { isPureStudentData } from '@/utils/studentExperience'
 
 const show = defineModel()
 const reloadProfile = defineModel('reloadProfile')
+const hasLanguageChanged = ref(false)
 const isDirty = ref(false)
 
 const props = defineProps({
@@ -179,6 +175,10 @@ const saveProfile = () => {
 			onSuccess() {
 				show.value = false
 				reloadProfile.value.reload()
+				if (hasLanguageChanged.value) {
+					hasLanguageChanged.value = false
+					window.location.reload()
+				}
 			},
 			onError(err) {
 				toast.error(err.messages?.[0] || err)
@@ -215,6 +215,7 @@ watch(
 			profile.first_name = newVal.first_name
 			profile.last_name = newVal.last_name
 			profile.headline = newVal.headline
+			profile.language = newVal.language
 			profile.bio = newVal.bio
 			profile.open_to = newVal.open_to
 			profile.linkedin = newVal.linkedin
@@ -222,6 +223,15 @@ watch(
 			profile.twitter = newVal.twitter
 			profile.image = newVal.user_image
 			isDirty.value = false
+		}
+	}
+)
+
+watch(
+	() => profile.language,
+	() => {
+		if (profile.language !== props.profile.data.language) {
+			hasLanguageChanged.value = true
 		}
 	}
 )

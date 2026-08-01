@@ -23,7 +23,6 @@
 				v-show="showMenu"
 				ref="menu"
 			>
-				<LanguageToggle v-if="isLoggedIn" />
 				<button
 					v-for="link in otherLinks"
 					:key="link.label"
@@ -89,7 +88,6 @@ import { usersStore } from '@/stores/user'
 import * as icons from 'lucide-vue-next'
 import { toggleNotifications } from '@/stores/notifications'
 import { isPureStudentData } from '@/utils/studentExperience'
-import LanguageToggle from '@/components/LanguageToggle.vue'
 
 const { logout, user } = sessionStore()
 let { isLoggedIn } = sessionStore()
