@@ -1,4 +1,5 @@
 import re
+from urllib.parse import quote
 
 import frappe
 from bs4 import BeautifulSoup
@@ -14,6 +15,16 @@ no_cache = 1
 
 
 def get_context():
+	# The entire LMS application is private. A Guest must never receive the
+	# SPA shell (it would let them load/inspect the internal app), so this
+	# redirect has to happen here, server-side, before any HTML is rendered
+	# — not merely enforced later by a client-side Vue router guard.
+	if frappe.session.user == "Guest":
+		app_path = frappe.form_dict.get("app_path")
+		destination = get_lms_route(app_path) if app_path else get_lms_route()
+		frappe.local.flags.redirect_location = f"/login?redirect-to={quote(destination, safe='')}"
+		raise frappe.Redirect
+
 	context = frappe._dict()
 	context.boot = get_boot()
 	frappe.db.commit()

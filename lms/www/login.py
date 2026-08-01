@@ -10,7 +10,7 @@ def get_context(context):
 	redirect_to = safe_local_redirect(frappe.form_dict.get("redirect-to"))
 
 	if frappe.session.user != "Guest":
-		frappe.local.flags.redirect_location = get_lms_route()
+		frappe.local.flags.redirect_location = redirect_to or get_lms_route()
 		raise frappe.Redirect
 
 	context.no_cache = 1

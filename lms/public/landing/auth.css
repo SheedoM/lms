@@ -1,0 +1,183 @@
+.ft-auth-page {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 32px 20px;
+	background:
+		radial-gradient(circle at 12% 8%, rgba(34, 160, 107, 0.1), transparent 26rem),
+		radial-gradient(circle at 88% 92%, rgba(8, 42, 54, 0.08), transparent 26rem),
+		var(--ft-canvas);
+}
+
+.ft-auth-shell {
+	width: 100%;
+	max-width: 420px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 24px;
+}
+
+.ft-auth-brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	text-decoration: none;
+	color: var(--ft-navy);
+	font-family: Alexandria, sans-serif;
+	font-weight: 700;
+	font-size: 1.15rem;
+}
+
+.ft-auth-brand .ft-brand-logo {
+	height: 34px;
+	width: auto;
+}
+
+.ft-auth-brand .ft-brand-mark {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 10px;
+	background: var(--ft-navy);
+	color: #fff;
+	font-family: Alexandria, sans-serif;
+	font-weight: 700;
+	font-size: 0.85rem;
+}
+
+.ft-auth-card {
+	position: relative;
+	width: 100%;
+	background: var(--ft-surface);
+	border: 1px solid var(--ft-line);
+	border-radius: var(--ft-radius);
+	box-shadow: var(--ft-shadow);
+	padding: 34px 30px;
+	overflow: hidden;
+}
+
+.ft-auth-circuit {
+	position: absolute;
+	inset: -40% -40% auto auto;
+	width: 240px;
+	height: 240px;
+	background-image:
+		linear-gradient(90deg, rgba(34, 160, 107, 0.14) 1px, transparent 1px),
+		linear-gradient(0deg, rgba(34, 160, 107, 0.14) 1px, transparent 1px);
+	background-size: 22px 22px;
+	-webkit-mask-image: radial-gradient(circle at 70% 30%, #000 0%, transparent 65%);
+	mask-image: radial-gradient(circle at 70% 30%, #000 0%, transparent 65%);
+	pointer-events: none;
+	opacity: 0.9;
+	animation: ft-circuit-pulse 7s ease-in-out infinite;
+}
+
+.ft-auth-card h1 {
+	position: relative;
+	margin: 0 0 6px;
+	font-family: Alexandria, sans-serif;
+	font-weight: 700;
+	font-size: 1.65rem;
+	color: var(--ft-navy);
+}
+
+.ft-auth-subtitle {
+	position: relative;
+	margin: 0 0 24px;
+	color: var(--ft-muted);
+	font-size: 0.95rem;
+}
+
+.ft-auth-alert {
+	position: relative;
+	margin: 0 0 18px;
+	padding: 12px 14px;
+	border-radius: 12px;
+	background: rgba(217, 68, 68, 0.08);
+	border: 1px solid rgba(217, 68, 68, 0.25);
+	color: #a83232;
+	font-size: 0.88rem;
+	line-height: 1.6;
+}
+
+.ft-auth-form {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.ft-auth-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	font-size: 0.88rem;
+	color: var(--ft-ink);
+}
+
+.ft-auth-field input {
+	appearance: none;
+	border: 1px solid var(--ft-line);
+	border-radius: 12px;
+	padding: 12px 14px;
+	font-size: 0.95rem;
+	font-family: inherit;
+	background: #fff;
+	color: var(--ft-ink);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ft-auth-field input:focus {
+	outline: none;
+	border-color: var(--ft-green);
+	box-shadow: 0 0 0 3px rgba(34, 160, 107, 0.15);
+}
+
+.ft-auth-submit {
+	width: 100%;
+	margin-top: 4px;
+	justify-content: center;
+}
+
+.ft-auth-switch {
+	position: relative;
+	margin: 20px 0 0;
+	text-align: center;
+	font-size: 0.9rem;
+	color: var(--ft-muted);
+}
+
+.ft-auth-switch a {
+	color: var(--ft-green-strong);
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.ft-auth-switch a:hover {
+	text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+	.ft-auth-card {
+		padding: 26px 20px;
+	}
+}
+
+@keyframes ft-circuit-pulse {
+	0%, 100% {
+		opacity: 0.55;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ft-auth-circuit {
+		animation: none;
+	}
+}

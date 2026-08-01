@@ -1,10 +1,16 @@
 from __future__ import annotations
 
+import re
 from urllib.parse import quote
 
 import frappe
 from frappe import _
-from frappe.utils import flt, now_datetime
+from frappe.rate_limiter import rate_limit
+from frappe.utils import escape_html, flt, now_datetime
+
+from lms.lms.utils import get_lms_route
+
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 DEFAULT_SETTINGS = frappe._dict(
@@ -393,3 +399,84 @@ def submit_subscription_request(
 		update_modified=False,
 	)
 	return {"name": doc.name, "already_exists": False}
+
+
+def safe_local_redirect(redirect_to: str | None) -> str | None:
+	"""Only allow same-site, relative paths.
+
+	Used for every post-auth redirect on the public site (signup, login) so a
+	crafted ``redirect-to`` value can never send a visitor off-site.
+	"""
+	if not redirect_to:
+		return None
+	redirect_to = redirect_to.strip()
+	if not redirect_to.startswith("/") or redirect_to.startswith("//"):
+		return None
+	if any(ch in redirect_to for ch in ("\\", "\n", "\r")):
+		return None
+	if "://" in redirect_to:
+		return None
+	return redirect_to
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=10, seconds=60 * 60)
+def public_signup(
+	full_name: str,
+	email: str,
+	password: str,
+	confirm_password: str,
+	redirect_to: str | None = None,
+):
+	"""Direct, immediate self-service signup for the public site.
+
+	Unlike the framework's default signup flow (``lms.lms.user.sign_up``),
+	this sets the password the visitor chose (not a random one), needs no
+	admin approval or outgoing email, and logs the visitor in right away.
+	The "LMS Student" role is added automatically by the existing
+	``add_lms_student_role`` hook on ``User.before_insert`` — nothing here
+	grants Desk, Moderator, Instructor or System Manager access.
+	"""
+	if frappe.session.user != "Guest":
+		frappe.throw(_("You are already logged in."))
+
+	full_name = (full_name or "").strip()
+	email = (email or "").strip().lower()
+	password = password or ""
+	confirm_password = confirm_password or ""
+
+	if not full_name:
+		frappe.throw(_("Please enter your full name."))
+	if not email or not EMAIL_RE.match(email):
+		frappe.throw(_("Please enter a valid email address."))
+	if not password:
+		frappe.throw(_("Please enter a password."))
+	if password != confirm_password:
+		frappe.throw(_("Passwords do not match."))
+
+	if frappe.db.exists("User", email):
+		frappe.throw(_("An account with this email already exists. Please log in instead."))
+
+	try:
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": escape_html(full_name),
+				"enabled": 1,
+				"new_password": password,
+				"user_type": "Website User",
+				"send_welcome_email": 0,
+			}
+		)
+		user.flags.ignore_permissions = True
+		# Password strength is still enforced (System Settings policy) —
+		# only the random-password + email-verification detour is skipped.
+		user.insert()
+	except frappe.DuplicateEntryError:
+		frappe.throw(_("An account with this email already exists. Please log in instead."))
+
+	frappe.db.commit()
+	frappe.local.login_manager.login_as(user.name)
+
+	return {"redirect_to": safe_local_redirect(redirect_to) or get_lms_route()}
