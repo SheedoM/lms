@@ -1,0 +1,68 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("إنشاء حساب") }} | {{ settings.brand_name }}{% endblock %}
+
+{% block head_include %}
+<meta name="description" content="{{ _('أنشئ حسابك في منصة') }} {{ settings.brand_name }}" />
+<link rel="stylesheet" href="/assets/lms/landing/landing.css?v={{ landing_asset_version() }}" />
+<link rel="stylesheet" href="/assets/lms/landing/auth.css?v={{ landing_asset_version() }}" />
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block page_content %}
+<div class="ft-public-site ft-auth-page" dir="rtl" lang="ar">
+	<div class="ft-auth-shell">
+		<a class="ft-auth-brand" href="/">
+			{% if settings.logo %}
+				<img src="{{ settings.logo }}" alt="{{ settings.brand_name }}" class="ft-brand-logo" />
+			{% else %}
+				<span class="ft-brand-mark" aria-hidden="true">FT</span>
+			{% endif %}
+			<span>{{ settings.brand_name }}</span>
+		</a>
+
+		<div class="ft-auth-card">
+			<div class="ft-auth-circuit" aria-hidden="true"></div>
+
+			<h1>ابدأ رحلتك</h1>
+			<p class="ft-auth-subtitle">أنشئ حسابك وابدأ التعلم بالتطبيق من أول يوم.</p>
+
+			<div class="ft-auth-alert" data-auth-alert hidden role="alert"></div>
+
+			<form class="ft-auth-form" data-signup-form novalidate>
+				<input type="hidden" name="redirect_to" value="{{ redirect_to }}" />
+				<label class="ft-auth-field">
+					<span>الاسم بالكامل</span>
+					<input type="text" name="full_name" required autocomplete="name" />
+				</label>
+				<label class="ft-auth-field">
+					<span>البريد الإلكتروني</span>
+					<input type="email" name="email" required autocomplete="username" dir="ltr" />
+				</label>
+				<label class="ft-auth-field">
+					<span>كلمة المرور</span>
+					<input type="password" name="password" required autocomplete="new-password" dir="ltr" minlength="8" />
+				</label>
+				<label class="ft-auth-field">
+					<span>تأكيد كلمة المرور</span>
+					<input type="password" name="confirm_password" required autocomplete="new-password" dir="ltr" minlength="8" />
+				</label>
+				<button type="submit" class="ft-button ft-button-primary ft-button-large ft-auth-submit">
+					<span data-btn-label>إنشاء حساب</span>
+				</button>
+			</form>
+
+			<p class="ft-auth-switch">
+				لديك حساب بالفعل؟
+				<a href="/login{% if redirect_to %}?redirect-to={{ redirect_to | urlencode }}{% endif %}">سجّل الدخول</a>
+			</p>
+		</div>
+	</div>
+</div>
+<script>
+window.ftAuthConfig = { csrfToken: {{ csrf_token | tojson }} };
+</script>
+<script src="/assets/lms/landing/auth.js?v={{ landing_asset_version() }}" defer></script>
+{% endblock %}

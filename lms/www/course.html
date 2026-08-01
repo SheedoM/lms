@@ -1,0 +1,134 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ offering.title }} | {{ settings.brand_name }}{% endblock %}
+
+{% block head_include %}
+<meta name="description" content="{{ offering.short_description or settings.hero_description }}" />
+<link rel="stylesheet" href="/assets/lms/landing/landing.css?v={{ landing_asset_version() }}" />
+<link rel="stylesheet" href="/assets/lms/landing/detail.css" />
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block page_content %}
+<div class="ft-public-site" dir="rtl" lang="ar">
+	{% include "lms/templates/public_site/header.html" %}
+
+	<main>
+		<section class="ft-course-hero">
+			<div class="ft-container ft-course-hero-grid">
+				<div class="ft-course-detail-cover">
+					{% if offering.cover_image %}
+						<img src="{{ offering.cover_image }}" alt="{{ offering.title }}" />
+					{% else %}
+						<div class="ft-course-cover-fallback">
+							<span>&lt;/&gt;</span>
+							<strong>{{ offering.title }}</strong>
+						</div>
+					{% endif %}
+				</div>
+
+				<div class="ft-course-detail-copy">
+					<span class="ft-kicker">{{ offering.category_label }}</span>
+					<h1>{{ offering.title }}</h1>
+					{% if offering.short_description %}<p>{{ offering.short_description }}</p>{% endif %}
+					{% if offering.price and offering.access_type != 'Free' %}
+					<div class="ft-course-detail-price">
+						<strong>{{ offering.price|int }} {{ offering.currency or 'EGP' }}</strong>
+						{% if offering.original_price and offering.original_price > offering.price %}<del>{{ offering.original_price|int }} {{ offering.currency or 'EGP' }}</del>{% endif %}
+					</div>
+					{% elif offering.access_type == 'Free' %}
+					<div class="ft-course-detail-price"><strong>مجاني</strong></div>
+					{% endif %}
+					<div class="ft-hero-actions">
+						<a class="ft-button ft-button-primary ft-button-large" href="{{ offering.action_url }}" {% if offering.action_disabled %}aria-disabled="true" tabindex="-1"{% endif %}>{{ offering.action_label }}</a>
+						<a class="ft-button ft-button-secondary ft-button-large" href="/#courses">شوف باقي الكورسات</a>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="ft-container ft-course-detail-sections">
+			<div class="ft-course-content-stack">
+				{% if offering.audience %}
+				<article class="ft-detail-card">
+					<h2>الكورس مناسب لمين؟</h2>
+					<div class="ft-rich-text">{{ offering.audience|safe }}</div>
+				</article>
+				{% endif %}
+
+				{% if offering.learning_outcomes %}
+				<article class="ft-detail-card">
+					<h2>هتتعلم إيه؟</h2>
+					<div class="ft-rich-text">{{ offering.learning_outcomes|safe }}</div>
+				</article>
+				{% endif %}
+
+				{% if offering.course_content %}
+				<article class="ft-detail-card">
+					<h2>محتوى الكورس</h2>
+					<div class="ft-rich-text">{{ offering.course_content|safe }}</div>
+				</article>
+				{% endif %}
+
+				{% if offering.study_method %}
+				<article class="ft-detail-card">
+					<h2>طريقة الدراسة</h2>
+					<div class="ft-rich-text">{{ offering.study_method|safe }}</div>
+				</article>
+				{% endif %}
+
+				{% if offering.included_items %}
+				<article class="ft-detail-card">
+					<h2>الاشتراك يشمل إيه؟</h2>
+					<div class="ft-rich-text">{{ offering.included_items|safe }}</div>
+				</article>
+				{% endif %}
+
+				<article class="ft-detail-card">
+					<h2>{{ settings.about_heading }}</h2>
+					<div class="ft-course-instructor-inline">
+						{% if settings.instructor_image %}<img src="{{ settings.instructor_image }}" alt="{{ settings.instructor_name }}" />{% endif %}
+						<div>
+							<h3>{{ settings.instructor_name }}</h3>
+							<strong>{{ settings.instructor_role }}</strong>
+							<div class="ft-rich-text">{{ settings.about_text|safe }}</div>
+						</div>
+					</div>
+				</article>
+			</div>
+
+			<aside class="ft-course-cta-card">
+				<h3>{{ offering.title }}</h3>
+				{% if offering.short_description %}<p>{{ offering.short_description }}</p>{% endif %}
+				{% if offering.price and offering.access_type != 'Free' %}
+				<div class="ft-course-detail-price"><strong>{{ offering.price|int }} {{ offering.currency or 'EGP' }}</strong></div>
+				{% elif offering.access_type == 'Free' %}
+				<div class="ft-course-detail-price"><strong>مجاني</strong></div>
+				{% endif %}
+				<a class="ft-button ft-button-primary" href="{{ offering.action_url }}" {% if offering.action_disabled %}aria-disabled="true" tabindex="-1"{% endif %}>{{ offering.action_label }}</a>
+			</aside>
+		</section>
+
+		{% if settings.faqs %}
+		<section class="ft-section ft-faq-section" id="faq">
+			<div class="ft-container ft-faq-container">
+				<div class="ft-section-heading"><span class="ft-section-icon">?</span><h2>{{ settings.faq_heading }}</h2></div>
+				<div class="ft-faq-list">
+					{% for item in settings.faqs %}
+					<details class="ft-faq-item">
+						<summary>{{ item.question }}<span>+</span></summary>
+						<div class="ft-faq-answer">{{ item.answer|safe }}</div>
+					</details>
+					{% endfor %}
+				</div>
+			</div>
+		</section>
+		{% endif %}
+	</main>
+
+	{% include "lms/templates/public_site/footer.html" %}
+</div>
+<script src="/assets/lms/landing/landing.js?v={{ landing_asset_version() }}" defer></script>
+{% endblock %}
