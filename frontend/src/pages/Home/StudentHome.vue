@@ -3,21 +3,6 @@
 		<div class="mt-10 space-y-10">
 			<UpcomingEvaluations :forHome="true" />
 
-			<router-link
-				:to="{ name: 'StudentCodingLab' }"
-				class="flex items-center justify-between gap-4 rounded-md border border-outline-gray-2 bg-surface-base p-4 transition-colors hover:border-outline-gray-3 hover:bg-surface-gray-1"
-			>
-				<div class="flex min-w-0 items-center gap-3">
-					<div class="ft-coding-lab-icon grid size-10 shrink-0 place-items-center rounded-md">
-						<span class="lucide-code-2 size-5" />
-					</div>
-					<div class="truncate font-semibold text-ink-gray-9">
-						{{ __('Coding Lab') }}
-					</div>
-				</div>
-				<span class="lucide-chevron-right size-4 shrink-0 text-ink-gray-5 rtl:rotate-180" />
-			</router-link>
-
 			<div v-if="myLiveClasses.data?.length">
 				<h2 class="font-semibold text-md mb-3 text-ink-gray-9">
 					{{ __('Upcoming Live Classes') }}

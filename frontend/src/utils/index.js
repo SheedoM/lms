@@ -537,7 +537,7 @@ const getSidebarItems = (forMobile = false) => {
 					action: 'commandPalette',
 					shortcut: 'Mod+K',
 					condition: () => {
-						return !forMobile && userResource?.data
+						return !isPureStudent() && !forMobile && userResource?.data
 					},
 				},
 				{

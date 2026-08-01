@@ -9897,3 +9897,23 @@ msgstr "مساحة عمل حرة"
 #: frontend/src/pages/Student/CodingLab.vue
 msgid "Experiment freely."
 msgstr "جرّب بحرية."
+
+#: frontend/src/pages/Home/StudentHome.vue
+msgid "My Courses"
+msgstr "دوراتي"
+
+#: frontend/src/pages/Home/StudentHome.vue
+msgid "My Batches"
+msgstr "مجموعاتي"
+
+#: frontend/src/pages/Home/StudentHome.vue
+msgid "Our Popular Courses"
+msgstr "الدورات الأكثر شعبية"
+
+#: frontend/src/pages/Home/StudentHome.vue
+msgid "Our Upcoming Batches"
+msgstr "المجموعات القادمة"
+
+#: frontend/src/pages/Home/StudentHome.vue
+msgid "See all"
+msgstr "عرض الكل"
