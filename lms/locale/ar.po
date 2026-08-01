@@ -9877,3 +9877,23 @@ msgstr ""
 msgid "{} Published"
 msgstr ""
 
+
+#: frontend/src/utils/index.js
+msgid "My Learning"
+msgstr "تعلّمي"
+
+#: frontend/src/utils/index.js
+msgid "Coding Lab"
+msgstr "مختبر البرمجة"
+
+#: frontend/src/utils/index.js
+msgid "Assignments & Quizzes"
+msgstr "التكليفات والاختبارات"
+
+#: frontend/src/pages/Student/CodingLab.vue
+msgid "Free workspace"
+msgstr "مساحة عمل حرة"
+
+#: frontend/src/pages/Student/CodingLab.vue
+msgid "Experiment freely."
+msgstr "جرّب بحرية."

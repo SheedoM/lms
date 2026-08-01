@@ -8,6 +8,12 @@
 			:class="sidebarStore.isSidebarCollapsed ? 'items-center' : ''"
 		>
 			<UserDropdown :isCollapsed="sidebarStore.isSidebarCollapsed" />
+			<div
+				v-if="!sidebarStore.isSidebarCollapsed"
+				class="mx-3.5 mb-1 mt-2"
+			>
+				<LanguageToggle />
+			</div>
 			<div class="flex flex-col" v-if="sidebarSettings.data">
 				<div v-for="link in sidebarLinks" class="mx-2 my-2.5">
 					<div
@@ -95,7 +101,10 @@
 			</div>
 			<div
 				v-if="
-					isStudent && !profileIsComplete && !sidebarStore.isSidebarCollapsed
+					isStudent &&
+					!isPureStudent &&
+					!profileIsComplete &&
+					!sidebarStore.isSidebarCollapsed
 				"
 				class="flex flex-col gap-3 text-ink-gray-9 py-2.5 px-3 bg-surface-base shadow-sm rounded-md"
 			>
@@ -127,7 +136,10 @@
 			</div>
 			<Tooltip
 				v-if="
-					isStudent && !profileIsComplete && sidebarStore.isSidebarCollapsed
+					isStudent &&
+					!isPureStudent &&
+					!profileIsComplete &&
+					sidebarStore.isSidebarCollapsed
 				"
 				:text="__('Complete your profile')"
 			>
@@ -201,7 +213,7 @@
 							"
 						/>
 					</Tooltip>
-					<Tooltip :text="__('Powered by Frappe Learning')">
+					<Tooltip v-if="!isPureStudent" :text="__('Powered by Frappe Learning')">
 						<span
 							class="lucide-zap size-4 text-ink-gray-7 cursor-pointer"
 							@click="redirectToWebsite()"
@@ -298,6 +310,8 @@ import UserDropdown from '@/components/Sidebar/UserDropdown.vue'
 import CollapseSidebar from '@/components/Icons/CollapseSidebar.vue'
 import SidebarLink from '@/components/Sidebar/SidebarLink.vue'
 import CommandPalette from '@/components/CommandPalette/CommandPalette.vue'
+import LanguageToggle from '@/components/LanguageToggle.vue'
+import { isPureStudentData } from '@/utils/studentExperience'
 
 const { user } = sessionStore()
 const { userResource } = usersStore()
@@ -685,6 +699,10 @@ const redirectToWebsite = () => {
 
 const isStudent = computed(() => {
 	return userResource.data?.is_student
+})
+
+const isPureStudent = computed(() => {
+	return isPureStudentData(userResource.data)
 })
 
 const profileIsComplete = computed(() => {

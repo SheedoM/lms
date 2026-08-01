@@ -7,7 +7,7 @@
 		:size="size"
 		v-bind="$attrs"
 	>
-		<template v-if="user.open_to === 'Work'" #indicator>
+		<template v-if="!isPureStudent && user.open_to === 'Work'" #indicator>
 			<Tooltip :text="__('Open to Work')" placement="right">
 				<div class="rounded-full bg-surface-green-3 w-fit">
 					<span
@@ -17,7 +17,7 @@
 				</div>
 			</Tooltip>
 		</template>
-		<template v-else-if="user.open_to === 'Hiring'" #indicator>
+		<template v-else-if="!isPureStudent && user.open_to === 'Hiring'" #indicator>
 			<Tooltip :text="__('Hiring')" placement="right">
 				<div class="rounded-full bg-purple-500 w-fit">
 					<span
@@ -33,11 +33,16 @@
 import { Avatar, Tooltip } from 'frappe-ui'
 import { computed } from 'vue'
 import type { UserInfo } from '@/types'
+import { usersStore } from '@/stores/user'
+import { isPureStudentData } from '@/utils/studentExperience'
 
 const props = defineProps<{
 	user?: UserInfo | null
 	size?: string
 }>()
+
+const { userResource } = usersStore()
+const isPureStudent = computed(() => isPureStudentData(userResource?.data))
 
 const checkSize = computed<string>(() => {
 	const sizeMap: Record<string, string> = {

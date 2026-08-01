@@ -63,7 +63,7 @@
 							{{ profile.data.full_name.charAt(0).toUpperCase() }}
 						</div>
 						<Tooltip
-							v-if="profile.data.open_to"
+							v-if="!isPureStudentProfile && profile.data.open_to"
 							:text="
 								profile.data.open_to === 'Work'
 									? __('Open to Work')
@@ -92,10 +92,10 @@
 					<h1 class="text-4xl-semibold text-ink-gray-9">
 						{{ profile.data.full_name }}
 					</h1>
-					<div class="text-base text-ink-gray-7 mt-1">
+					<div v-if="!isPureStudentProfile" class="text-base text-ink-gray-7 mt-1">
 						{{ profile.data.headline }}
 					</div>
-					<div class="flex items-center gap-x-4 mt-2">
+					<div v-if="!isPureStudentProfile" class="flex items-center gap-x-4 mt-2">
 						<a
 							v-if="profile.data.twitter"
 							:href="profile.data.twitter"
@@ -203,6 +203,13 @@ const profile = createResource({
 			username: props.username,
 		}
 	},
+})
+
+const PROFILE_PRIVILEGED_ROLES = ['Moderator', 'Course Creator', 'Batch Evaluator', 'System Manager']
+const isPureStudentProfile = computed(() => {
+	const roles = profile.data?.roles
+	if (!Array.isArray(roles)) return false
+	return !roles.some((role) => PROFILE_PRIVILEGED_ROLES.includes(role))
 })
 
 const coverImage = createResource({

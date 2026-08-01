@@ -22,15 +22,15 @@
 				v-for="course in courses"
 				:key="course.name"
 				:to="{ name: 'CourseDetail', params: { courseName: course.name } }"
-				class="ft-panel group flex min-h-36 overflow-hidden rounded-xl transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9cff45]"
+				class="ft-panel group flex min-h-36 overflow-hidden rounded-xl transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ft-primary)]"
 			>
 				<div
-					class="w-28 shrink-0 bg-[#0b2b36] bg-cover bg-center sm:w-36"
+					class="w-28 shrink-0 bg-[var(--ft-nav)] bg-cover bg-center sm:w-36"
 					:style="course.image ? { backgroundImage: `url('${encodeURI(course.image)}')` } : {}"
 				>
 					<div
 						v-if="!course.image"
-						class="grid h-full place-items-center px-3 text-center text-sm font-semibold text-[#9cff45]"
+						class="grid h-full place-items-center px-3 text-center text-sm font-semibold text-[var(--ft-accent)]"
 					>
 						{{ course.title }}
 					</div>
@@ -45,12 +45,7 @@
 							<span>{{ __('Progress') }}</span>
 							<span>{{ Math.round(course.membership.progress || 0) }}%</span>
 						</div>
-						<div class="h-1.5 overflow-hidden rounded-full bg-black/10">
-							<div
-								class="h-full rounded-full bg-[#9cff45]"
-								:style="{ width: `${Math.min(100, course.membership.progress || 0)}%` }"
-							/>
-						</div>
+						<ProgressBar :progress="course.membership.progress || 0" />
 					</div>
 					<div v-else class="mt-auto pt-4 text-xs font-medium text-[var(--ft-muted)]">
 						{{ __('Available to enroll') }}
@@ -68,6 +63,7 @@
 </template>
 
 <script setup lang="ts">
+import ProgressBar from '@/components/ProgressBar.vue'
 import type { StudentCourse } from '@/composables/useStudentExperience'
 
 defineProps<{

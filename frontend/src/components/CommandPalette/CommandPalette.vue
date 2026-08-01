@@ -66,10 +66,12 @@
 </template>
 <script setup lang="ts">
 import { createResource, debounce, Dialog } from 'frappe-ui'
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { BookOpen, Briefcase, Users } from 'lucide-vue-next'
 import CommandPaletteGroup from './CommandPaletteGroup.vue'
+import { usersStore } from '@/stores/user'
+import { isPureStudentData } from '@/utils/studentExperience'
 
 const show = defineModel<boolean>({ required: true, default: false })
 const router = useRouter()
@@ -192,35 +194,49 @@ const navigateTo = (route: {
 	router.replace({ name: route.name, params: route.params, query: route.query })
 }
 
-const jumpToOptions = ref([
+const { userResource } = usersStore()
+const isPureStudent = computed(() => isPureStudentData(userResource?.data))
+
+const jumpToOptions = computed(() => [
 	{
 		title: __('Jump to'),
-		items: [
-			{
-				title: 'Courses',
-				icon: BookOpen,
-				route: {
-					name: 'Courses',
-				},
-				isActive: true,
-			},
-			{
-				title: 'Batches',
-				icon: Users,
-				route: {
-					name: 'Batches',
-				},
-				isActive: false,
-			},
-			{
-				title: 'Jobs',
-				icon: Briefcase,
-				route: {
-					name: 'Jobs',
-				},
-				isActive: false,
-			},
-		],
+		items: isPureStudent.value
+			? [
+					{
+						title: 'My Learning',
+						icon: BookOpen,
+						route: {
+							name: 'StudentLearning',
+						},
+						isActive: true,
+					},
+				]
+			: [
+					{
+						title: 'Courses',
+						icon: BookOpen,
+						route: {
+							name: 'Courses',
+						},
+						isActive: true,
+					},
+					{
+						title: 'Batches',
+						icon: Users,
+						route: {
+							name: 'Batches',
+						},
+						isActive: false,
+					},
+					{
+						title: 'Jobs',
+						icon: Briefcase,
+						route: {
+							name: 'Jobs',
+						},
+						isActive: false,
+					},
+				],
 	},
 ])
 </script>

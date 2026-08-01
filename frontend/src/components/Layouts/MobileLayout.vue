@@ -23,6 +23,7 @@
 				v-show="showMenu"
 				ref="menu"
 			>
+				<LanguageToggle v-if="isLoggedIn" />
 				<button
 					v-for="link in otherLinks"
 					:key="link.label"
@@ -87,6 +88,8 @@ import { useSettings } from '@/stores/settings'
 import { usersStore } from '@/stores/user'
 import * as icons from 'lucide-vue-next'
 import { toggleNotifications } from '@/stores/notifications'
+import { isPureStudentData } from '@/utils/studentExperience'
+import LanguageToggle from '@/components/LanguageToggle.vue'
 
 const { logout, user } = sessionStore()
 let { isLoggedIn } = sessionStore()
@@ -138,7 +141,9 @@ const filterLinksToShow = (data) => {
 
 const addOtherLinks = () => {
 	if (user) {
-		addLink('Notifications', 'Bell', 'Notifications')
+		if (!isPureStudentData(userResource.data)) {
+			addLink('Notifications', 'Bell', 'Notifications')
+		}
 		addLink('Profile', 'UserRound')
 		addLink('Log out', 'LogOut')
 	} else {
@@ -185,6 +190,7 @@ const addProgrammingExercises = () => {
 }
 
 const addPrograms = async () => {
+	if (isPureStudentData(userResource.data)) return
 	if (sidebarLinks.value.some((link) => link.label === 'Programs')) return
 	let canAddProgram = await checkIfCanAddProgram()
 	if (!canAddProgram) return

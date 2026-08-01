@@ -6,6 +6,7 @@ import { Upload } from '@/utils/upload'
 import { Markdown } from '@/utils/markdownParser'
 import { useSettings } from '@/stores/settings'
 import { usersStore } from '@/stores/user'
+import { isPureStudentData } from '@/utils/studentExperience'
 import { Heading } from '@/utils/heading'
 import Paragraph from '@editorjs/paragraph'
 import { CodeBox } from '@/utils/code'
@@ -544,7 +545,7 @@ const getSidebarItems = (forMobile = false) => {
 					icon: 'Bell',
 					panel: 'notifications',
 					condition: () => {
-						return !forMobile && userResource?.data
+						return !isPureStudent() && !forMobile && userResource?.data
 					},
 				},
 			],
@@ -554,10 +555,31 @@ const getSidebarItems = (forMobile = false) => {
 			hideLabel: true,
 			items: [
 				{
+					label: 'My Learning',
+					icon: 'BookOpen',
+					to: 'StudentLearning',
+					activeFor: ['StudentLearning'],
+					condition: () => {
+						return isPureStudent()
+					},
+				},
+				{
+					label: 'Coding Lab',
+					icon: 'Code2',
+					to: 'StudentCodingLab',
+					activeFor: ['StudentCodingLab'],
+					condition: () => {
+						return isPureStudent()
+					},
+				},
+				{
 					label: 'Courses',
 					icon: 'BookOpen',
 					to: 'Courses',
 					activeFor: ['Courses', 'CourseDetail', 'Lesson'],
+					condition: () => {
+						return !isPureStudent()
+					},
 				},
 				{
 					label: 'Programs',
@@ -566,7 +588,7 @@ const getSidebarItems = (forMobile = false) => {
 					activeFor: ['Programs', 'ProgramDetail'],
 					await: true,
 					condition: () => {
-						return checkIfCanAddProgram(forMobile)
+						return !isPureStudent() && checkIfCanAddProgram(forMobile)
 					},
 				},
 				{
@@ -574,6 +596,9 @@ const getSidebarItems = (forMobile = false) => {
 					icon: 'Users',
 					to: 'Batches',
 					activeFor: ['Batches', 'BatchDetail', 'Batch', 'BatchForm'],
+					condition: () => {
+						return !isPureStudent()
+					},
 				},
 				{
 					label: 'Certifications',
@@ -581,7 +606,7 @@ const getSidebarItems = (forMobile = false) => {
 					to: 'CertifiedParticipants',
 					activeFor: ['CertifiedParticipants'],
 					condition: () => {
-						return userResource?.data
+						return !isPureStudent() && userResource?.data
 					},
 				},
 				{
@@ -589,12 +614,18 @@ const getSidebarItems = (forMobile = false) => {
 					icon: 'Briefcase',
 					to: 'Jobs',
 					activeFor: ['Jobs', 'JobDetail'],
+					condition: () => {
+						return !isPureStudent()
+					},
 				},
 				{
 					label: 'Statistics',
 					icon: 'TrendingUp',
 					to: 'Statistics',
 					activeFor: ['Statistics'],
+					condition: () => {
+						return !isPureStudent()
+					},
 				},
 				{
 					label: 'Contact Us',
@@ -604,10 +635,11 @@ const getSidebarItems = (forMobile = false) => {
 						: settings.data?.contact_us_email,
 					condition: () => {
 						return (
-							(!forMobile &&
+							!isPureStudent() &&
+							((!forMobile &&
 								settings?.data?.contact_us_email &&
 								userResource?.data) ||
-							settings?.data?.contact_us_url
+								settings?.data?.contact_us_url)
 						)
 					},
 				},
@@ -617,6 +649,15 @@ const getSidebarItems = (forMobile = false) => {
 			label: 'Assessments',
 			hideLabel: true,
 			items: [
+				{
+					label: 'Assignments & Quizzes',
+					icon: 'ClipboardCheck',
+					to: 'StudentAssessments',
+					activeFor: ['StudentAssessments'],
+					condition: () => {
+						return isPureStudent()
+					},
+				},
 				{
 					label: 'Quizzes',
 					icon: 'CircleHelp',
@@ -661,6 +702,11 @@ const getSidebarItems = (forMobile = false) => {
 			],
 		},
 	]
+}
+
+const isPureStudent = () => {
+	const { userResource } = usersStore()
+	return isPureStudentData(userResource?.data)
 }
 
 const isAdmin = () => {
