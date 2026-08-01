@@ -1,0 +1,86 @@
+{% extends "templates/web.html" %}
+
+{% block title %}الاشتراك في {{ offering.title }} | {{ settings.brand_name }}{% endblock %}
+
+{% block head_include %}
+<meta name="description" content="إرسال طلب الاشتراك في {{ offering.title }}" />
+<meta name="csrf-token" content="{{ csrf_token }}" />
+<link rel="stylesheet" href="/assets/lms/landing/landing.css" />
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block page_content %}
+<div class="ft-public-site" dir="rtl" lang="ar">
+	{% include "lms/templates/public_site/header.html" %}
+
+	<main class="ft-subscription-page">
+		<div class="ft-container ft-subscription-layout">
+			<aside class="ft-subscription-course-card">
+				<div class="ft-subscription-cover">
+					{% if offering.cover_image %}
+						<img src="{{ offering.cover_image }}" alt="{{ offering.title }}" />
+					{% else %}
+						<div class="ft-course-cover-fallback"><span>&lt;/&gt;</span><strong>{{ offering.title }}</strong></div>
+					{% endif %}
+				</div>
+				<div>
+					<span class="ft-kicker">{{ offering.category_label }}</span>
+					<h1>{{ offering.title }}</h1>
+					{% if offering.short_description %}<p>{{ offering.short_description }}</p>{% endif %}
+					{% if offering.price %}<div class="ft-course-detail-price"><strong>{{ offering.price|int }} {{ offering.currency or 'EGP' }}</strong></div>{% endif %}
+				</div>
+			</aside>
+
+			<section class="ft-subscription-form-card">
+				{% if existing_request %}
+				<div class="ft-request-success">
+					<div class="ft-request-success-icon">✓</div>
+					<h2>طلب الاشتراك قيد المراجعة</h2>
+					<p>استلمنا طلبك بالفعل، وهيتم تفعيله بعد مراجعة بيانات الدفع.</p>
+					<small>رقم الطلب: {{ existing_request.name }}</small>
+					<a class="ft-button ft-button-secondary" href="/lms">الرجوع للمنصة</a>
+				</div>
+				{% else %}
+				<div class="ft-subscription-heading">
+					<span class="ft-kicker">خطوة أخيرة</span>
+					<h2>إتمام طلب الاشتراك</h2>
+					<p>أدخل بيانات التحويل وارفع صورة إثبات الدفع. بعد المراجعة، هيتم تفعيل الكورس على حسابك.</p>
+				</div>
+
+				<form data-subscription-form data-offering-slug="{{ offering.slug }}">
+					<label class="ft-form-field">
+						<span>طريقة الدفع</span>
+						<input type="text" name="payment_method" placeholder="مثال: InstaPay أو محفظة إلكترونية" required />
+					</label>
+
+					<label class="ft-form-field">
+						<span>رقم الهاتف المُرسل منه</span>
+						<input type="tel" name="sender_phone" inputmode="tel" placeholder="01xxxxxxxxx" required />
+					</label>
+
+					<label class="ft-form-field ft-file-field">
+						<span>صورة إثبات الدفع</span>
+						<input type="file" name="payment_screenshot" accept="image/*" required />
+						<small>ارفع صورة واضحة لعملية التحويل.</small>
+					</label>
+
+					<label class="ft-form-field">
+						<span>ملاحظات <small>(اختياري)</small></span>
+						<textarea name="notes" rows="4" placeholder="أي معلومة إضافية تساعدنا نراجع الطلب"></textarea>
+					</label>
+
+					<div class="ft-form-message" data-form-message aria-live="polite"></div>
+					<button class="ft-button ft-button-primary ft-button-large" type="submit" data-submit-button>إرسال طلب الاشتراك</button>
+				</form>
+				{% endif %}
+			</section>
+		</div>
+	</main>
+
+	{% include "lms/templates/public_site/footer.html" %}
+</div>
+<script src="/assets/lms/landing/landing.js" defer></script>
+<script src="/assets/lms/landing/subscription.js" defer></script>
+{% endblock %}
