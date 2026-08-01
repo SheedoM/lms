@@ -181,7 +181,14 @@ def get_public_offering(slug, settings=None):
 
 def serialize_offering(offering, settings):
 	offering = frappe._dict(offering)
-	action_label = offering.primary_button_label or get_default_action_label(offering, settings)
+	is_enrolled = _is_current_user_enrolled(offering.linked_lms_course)
+	if is_enrolled:
+		action_label = settings.continue_button_label
+		action_url = f"/lms/courses/{quote(offering.linked_lms_course)}"
+	else:
+		action_label = offering.primary_button_label or get_default_action_label(offering, settings)
+		action_url = get_primary_action_url(offering)
+
 	return frappe._dict(
 		{
 			**offering,
@@ -190,8 +197,9 @@ def serialize_offering(offering, settings):
 			"details_label": offering.details_button_label or settings.details_button_label,
 			"details_url": f"/courses/{quote(offering.slug)}",
 			"action_label": action_label,
-			"action_url": get_primary_action_url(offering),
-			"action_disabled": offering.primary_action_type == "Coming Soon",
+			"action_url": action_url,
+			"action_disabled": offering.primary_action_type == "Coming Soon" and not is_enrolled,
+			"is_enrolled": is_enrolled,
 		}
 	)
 
@@ -214,9 +222,19 @@ def get_primary_action_url(offering):
 	if offering.primary_action_type == "Coming Soon":
 		return "#"
 	if offering.primary_action_type == "Free Enrollment":
-		redirect = quote(f"/courses/{offering.slug}", safe="")
-		return f"/signup?redirect-to={redirect}"
+		return f"/enroll/{quote(offering.slug)}"
 	return f"/subscribe/{quote(offering.slug)}"
+
+
+def _is_current_user_enrolled(course_name):
+	return bool(
+		course_name
+		and frappe.session.user != "Guest"
+		and frappe.db.table_exists("LMS Enrollment")
+		and frappe.db.exists(
+			"LMS Enrollment", {"member": frappe.session.user, "course": course_name}
+		)
+	)
 
 
 def apply_common_context(context):
@@ -258,9 +276,7 @@ def get_subscription_context(context, slug):
 		frappe.throw(_("This course does not accept paid subscription requests."))
 
 	if frappe.session.user == "Guest":
-		redirect_to = quote(f"/subscribe/{slug}", safe="")
-		frappe.local.flags.redirect_location = f"/login?redirect-to={redirect_to}"
-		raise frappe.Redirect
+		_redirect_to_auth(f"/subscribe/{slug}")
 
 	context.existing_request = None
 	if frappe.db.table_exists("Course Subscription Request"):
@@ -275,6 +291,41 @@ def get_subscription_context(context, slug):
 			as_dict=True,
 		)
 	return context
+
+
+def enroll_in_free_offering(slug):
+	offering = get_public_offering(slug)
+	if not offering:
+		raise frappe.DoesNotExistError(_("Course not found"))
+	if offering.primary_action_type != "Free Enrollment" or offering.access_type != "Free":
+		frappe.throw(_("This course is not available for free enrollment."))
+	if not offering.linked_lms_course:
+		frappe.throw(_("This course has not been linked to LMS content yet."))
+	if frappe.session.user == "Guest":
+		_redirect_to_auth(f"/enroll/{slug}", signup=True)
+
+	enrollment_name = frappe.db.get_value(
+		"LMS Enrollment",
+		{"member": frappe.session.user, "course": offering.linked_lms_course},
+		"name",
+	)
+	if not enrollment_name:
+		enrollment = frappe.new_doc("LMS Enrollment")
+		enrollment.member = frappe.session.user
+		enrollment.course = offering.linked_lms_course
+		enrollment.member_type = "Student"
+		enrollment.role = "Member"
+		enrollment.insert(ignore_permissions=True)
+
+	frappe.local.flags.redirect_location = f"/lms/courses/{quote(offering.linked_lms_course)}"
+	raise frappe.Redirect
+
+
+def _redirect_to_auth(destination, signup=False):
+	redirect_to = quote(destination, safe="")
+	path = "/signup" if signup else "/login"
+	frappe.local.flags.redirect_location = f"{path}?redirect-to={redirect_to}"
+	raise frappe.Redirect
 
 
 @frappe.whitelist()
