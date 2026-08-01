@@ -1,0 +1,33 @@
+<header class="ft-site-header" data-site-header>
+	<div class="ft-container ft-header-inner">
+		<a class="ft-brand" href="/" aria-label="{{ settings.brand_name }}">
+			{% if settings.logo %}
+				<img src="{{ settings.logo }}" alt="{{ settings.brand_name }}" class="ft-brand-logo" />
+			{% else %}
+				<span class="ft-brand-mark" aria-hidden="true">FT</span>
+			{% endif %}
+			<span>{{ settings.brand_name }}</span>
+		</a>
+
+		<button class="ft-menu-button" type="button" aria-label="فتح القائمة" aria-expanded="false" data-menu-button>
+			<span></span><span></span><span></span>
+		</button>
+
+		<nav class="ft-main-nav" aria-label="التنقل الرئيسي" data-main-nav>
+			<a href="/#home">{{ settings.nav_home_label }}</a>
+			<a href="/#courses">{{ settings.nav_courses_label }}</a>
+			<a href="/#coding-lab">{{ settings.nav_lab_label }}</a>
+			<a href="/#about">{{ settings.nav_about_label }}</a>
+			<a href="/#faq">{{ settings.nav_faq_label }}</a>
+		</nav>
+
+		<div class="ft-header-actions">
+			{% if is_guest %}
+			<a class="ft-button ft-button-secondary ft-button-small" href="/login">{{ settings.login_button_label }}</a>
+			<a class="ft-button ft-button-primary ft-button-small" href="/signup">{{ settings.signup_button_label }}</a>
+			{% else %}
+			<a class="ft-button ft-button-primary ft-button-small" href="/lms">المنصة التعليمية</a>
+			{% endif %}
+		</div>
+	</div>
+</header>

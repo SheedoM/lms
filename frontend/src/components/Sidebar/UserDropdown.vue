@@ -79,7 +79,6 @@
 <script setup>
 import { sessionStore } from '@/stores/session'
 import { call, Dropdown, toast } from 'frappe-ui'
-import { useRouter } from 'vue-router'
 import { convertToTitleCase } from '@/utils'
 import { applyTheme, toggleTheme, theme } from '@/utils/theme'
 import { usersStore } from '@/stores/user'
@@ -90,9 +89,8 @@ import Apps from '@/components/Sidebar/Apps.vue'
 import Configuration from '@/components/Sidebar/Configuration.vue'
 import FrappeCloudIcon from '@/components/Icons/FrappeCloudIcon.vue'
 import SettingsModal from '@/components/Settings/Settings.vue'
-import { Moon, Sun } from 'lucide-vue-next'
+import { Moon, Sun, Languages } from 'lucide-vue-next'
 
-const router = useRouter()
 const { logout, branding } = sessionStore()
 let { userResource } = usersStore()
 const settingsStore = useSettings()
@@ -100,6 +98,7 @@ let { isLoggedIn } = sessionStore()
 const showSettingsModal = ref(false)
 const frappeCloudBaseEndpoint = 'https://frappecloud.com'
 const $dialog = createDialog
+const isArabic = computed(() => document.documentElement.dir === 'rtl')
 
 const props = defineProps({
 	isCollapsed: {
@@ -127,20 +126,22 @@ const userDropdownOptions = computed(() => {
 			group: '',
 			items: [
 				{
-					icon: 'lucide-user',
-					label: 'My Profile',
-					onClick: () => {
-						router.push(`/user/${userResource.data?.username}`)
-					},
-					condition: () => {
-						return isLoggedIn
-					},
-				},
-				{
 					icon: theme.value === 'light' ? Moon : Sun,
 					label: 'Toggle Theme',
 					onClick: () => {
 						toggleTheme()
+					},
+				},
+				{
+					icon: Languages,
+					label: isArabic.value
+						? __('Switch to English')
+						: __('Switch to Arabic'),
+					onClick: () => {
+						switchLanguage()
+					},
+					condition: () => {
+						return isLoggedIn
 					},
 				},
 				{
@@ -237,6 +238,18 @@ const userDropdownOptions = computed(() => {
 		},
 	]
 })
+
+const switchLanguage = () => {
+	const newLanguage = isArabic.value ? 'en' : 'ar'
+	call('frappe.client.set_value', {
+		doctype: 'User',
+		name: userResource.data?.name,
+		fieldname: 'language',
+		value: newLanguage,
+	}).finally(() => {
+		window.location.reload()
+	})
+}
 
 const loginToFrappeCloud = () => {
 	let redirect_to = '/dashboard/sites/' + userResource.data.sitename

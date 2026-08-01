@@ -4,6 +4,9 @@ import { usersStore } from './stores/user'
 import { sessionStore } from './stores/session'
 import { useSettings } from './stores/settings'
 import { getLmsBasePath } from './utils/basePath'
+import { isPureStudentData } from './utils/studentExperience'
+
+const STUDENT_BLOCKED_ROUTE_NAMES = ['Jobs', 'JobDetail', 'JobApplications', 'JobForm']
 
 // Run the fresh-site-admin persona check at most once per app load.
 let personaChecked = false
@@ -33,6 +36,16 @@ const routes = [
 		path: '/courses',
 		name: 'Courses',
 		component: () => import('@/pages/Courses/Courses.vue'),
+	},
+	{
+		path: '/my-learning',
+		name: 'StudentLearning',
+		component: () => import('@/pages/Courses/StudentLearning.vue'),
+	},
+	{
+		path: '/assignments-quizzes',
+		name: 'StudentAssessments',
+		component: () => import('@/pages/Student/Assessments.vue'),
 	},
 	{
 		path: '/courses/:courseName',
@@ -287,6 +300,14 @@ router.beforeEach(async (to, from, next) => {
 			window.location.href = '/login'
 			return
 		}
+	}
+
+	if (
+		isLoggedIn &&
+		STUDENT_BLOCKED_ROUTE_NAMES.includes(to.name) &&
+		isPureStudentData(userResource.data)
+	) {
+		return next({ name: 'Home' })
 	}
 
 	if (

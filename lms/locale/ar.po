@@ -5377,11 +5377,11 @@ msgstr ""
 
 #: frontend/src/pages/Home/StudentHome.vue:112
 msgid "My Batches"
-msgstr ""
+msgstr "مجموعاتي"
 
 #: frontend/src/pages/Home/StudentHome.vue:80
 msgid "My Courses"
-msgstr ""
+msgstr "دوراتي"
 
 #: frontend/src/components/Notes/Notes.vue:3
 msgid "My Notes"
@@ -5987,11 +5987,11 @@ msgstr "بدلات أخرى"
 
 #: frontend/src/pages/Home/StudentHome.vue:81
 msgid "Our Popular Courses"
-msgstr ""
+msgstr "الدورات الأكثر شعبية"
 
 #: frontend/src/pages/Home/StudentHome.vue:113
 msgid "Our Upcoming Batches"
-msgstr ""
+msgstr "المجموعات القادمة"
 
 #. Label of the output (Data) field in DocType 'LMS Test Case Submission'
 #: lms/lms/doctype/lms_test_case_submission/lms_test_case_submission.json
@@ -7358,7 +7358,7 @@ msgstr ""
 #: frontend/src/pages/Home/StudentHome.vue:91
 #: frontend/src/pages/Home/StudentHome.vue:123
 msgid "See all"
-msgstr ""
+msgstr "عرض الكل"
 
 #: frontend/src/components/CourseReviews.vue:81
 msgid "See less"
@@ -9877,3 +9877,23 @@ msgstr ""
 msgid "{} Published"
 msgstr ""
 
+
+#: frontend/src/utils/index.js
+msgid "My Learning"
+msgstr "تعلّمي"
+
+#: frontend/src/utils/index.js
+msgid "Coding Lab"
+msgstr "مختبر البرمجة"
+
+#: frontend/src/utils/index.js
+msgid "Assignments & Quizzes"
+msgstr "التكليفات والاختبارات"
+
+#: frontend/src/pages/Student/CodingLab.vue
+msgid "Free workspace"
+msgstr "مساحة عمل حرة"
+
+#: frontend/src/pages/Student/CodingLab.vue
+msgid "Experiment freely."
+msgstr "جرّب بحرية."

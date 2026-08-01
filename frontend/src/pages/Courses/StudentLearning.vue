@@ -16,7 +16,7 @@
 					type="search"
 					:placeholder="__('Search your learning')"
 					:aria-label="__('Search your learning')"
-					class="h-10 w-full rounded-lg border border-[var(--ft-border)] bg-[var(--ft-surface)] ps-9 pe-3 text-sm outline-none focus:ring-2 focus:ring-[#9cff45]"
+					class="h-10 w-full rounded-lg border border-[var(--ft-border)] bg-[var(--ft-surface)] ps-9 pe-3 text-sm outline-none focus:ring-2 focus:ring-[var(--ft-primary)]"
 				/>
 			</div>
 		</StudentPageHeader>

@@ -1,0 +1,410 @@
+(() => {
+	'use strict'
+
+	const menuButton = document.querySelector('[data-menu-button]')
+	const mainNav = document.querySelector('[data-main-nav]')
+	if (menuButton && mainNav) {
+		menuButton.addEventListener('click', () => {
+			const isOpen = mainNav.classList.toggle('is-open')
+			menuButton.setAttribute('aria-expanded', String(isOpen))
+		})
+		mainNav.querySelectorAll('a').forEach((link) => {
+			link.addEventListener('click', () => {
+				mainNav.classList.remove('is-open')
+				menuButton.setAttribute('aria-expanded', 'false')
+			})
+		})
+	}
+
+	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+	initScrollReveal()
+	initHeroTerminal()
+
+	function initScrollReveal() {
+		const targets = [...document.querySelectorAll('[data-reveal], [data-reveal-stagger]')]
+		if (!targets.length) return
+
+		if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+			targets.forEach((el) => el.classList.add('is-visible'))
+			return
+		}
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (!entry.isIntersecting) return
+					entry.target.classList.add('is-visible')
+					observer.unobserve(entry.target)
+				})
+			},
+			{ threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+		)
+		targets.forEach((el) => observer.observe(el))
+	}
+
+	function initHeroTerminal() {
+		const card = document.querySelector('[data-hero-terminal]')
+		const output = card?.querySelector('[data-terminal-output]')
+		if (!card || !output) return
+
+		const lines = (card.dataset.terminalLines || '')
+			.split('\n')
+			.map((line) => line.trim())
+			.filter(Boolean)
+		if (!lines.length) return
+
+		if (prefersReducedMotion) {
+			output.textContent = lines.join('\n')
+			return
+		}
+
+		const cursor = document.createElement('span')
+		cursor.className = 'ft-terminal-cursor'
+		cursor.setAttribute('aria-hidden', 'true')
+
+		let cancelled = false
+		const start = () => {
+			if (cancelled) return
+			typeLines(output, cursor, lines).then(() => {
+				if (cancelled) return
+				window.setTimeout(start, 4000)
+			})
+		}
+
+		if ('IntersectionObserver' in window) {
+			const observer = new IntersectionObserver(
+				(entries) => {
+					if (entries.some((entry) => entry.isIntersecting)) {
+						observer.disconnect()
+						start()
+					}
+				},
+				{ threshold: 0.4 }
+			)
+			observer.observe(card)
+		} else {
+			start()
+		}
+
+		window.addEventListener('beforeunload', () => {
+			cancelled = true
+		})
+	}
+
+	async function typeLines(output, cursor, lines) {
+		output.textContent = ''
+		output.appendChild(cursor)
+		for (const line of lines) {
+			const lineNode = document.createTextNode('')
+			output.insertBefore(lineNode, cursor)
+			for (const char of line) {
+				lineNode.textContent += char
+				await wait(18 + Math.random() * 22)
+			}
+			output.insertBefore(document.createTextNode('\n'), cursor)
+			await wait(260)
+		}
+	}
+
+	function wait(ms) {
+		return new Promise((resolve) => window.setTimeout(resolve, ms))
+	}
+
+	const catalogue = document.querySelector('[data-course-catalogue]')
+	if (catalogue) {
+		const tabs = [...catalogue.querySelectorAll('[data-course-tab]')]
+		const panels = [...catalogue.querySelectorAll('[data-course-panel]')]
+		tabs.forEach((tab) => {
+			tab.addEventListener('click', () => {
+				const slug = tab.dataset.courseTab
+				tabs.forEach((item) => {
+					const active = item === tab
+					item.classList.toggle('is-active', active)
+					item.setAttribute('aria-selected', String(active))
+				})
+				panels.forEach((panel) =>
+					panel.classList.toggle('is-active', panel.dataset.coursePanel === slug)
+				)
+			})
+		})
+	}
+
+	initPublicLab()
+
+	function initPublicLab() {
+		const lab = document.querySelector('[data-public-lab]')
+		if (!lab) return
+
+		const editor = lab.querySelector('[data-lab-editor]')
+		const output = lab.querySelector('[data-lab-output]')
+		const runButton = lab.querySelector('[data-lab-run]')
+		const resetButton = lab.querySelector('[data-lab-reset]')
+		const languageButtons = [...lab.querySelectorAll('[data-lab-language]')]
+		if (!editor || !output || !runButton || !resetButton) return
+
+		const starterCode = {
+			python: editor.dataset.pythonCode || editor.value || '',
+			javascript: editor.dataset.javascriptCode || '',
+		}
+		const drafts = { ...starterCode }
+		let language = 'python'
+		let pythonWorker = null
+		let pythonWorkerUrl = null
+		let pythonWorkerReady = false
+		let pythonPreloadStarted = false
+
+		const PYTHON_INIT_TIMEOUT_MS = 75000
+		const PYTHON_EXECUTION_TIMEOUT_MS = 10000
+
+		schedulePythonPreload()
+
+		languageButtons.forEach((button) => {
+			button.addEventListener('click', () => {
+				drafts[language] = editor.value
+				language = button.dataset.labLanguage
+				editor.value = drafts[language]
+				languageButtons.forEach((item) =>
+					item.classList.toggle('is-active', item === button)
+				)
+				output.textContent = 'اضغط تشغيل علشان تشوف النتيجة هنا.'
+			})
+		})
+
+		resetButton.addEventListener('click', () => {
+			drafts[language] = starterCode[language]
+			editor.value = starterCode[language]
+			output.textContent = 'تمت إعادة الكود للمثال الأساسي.'
+			editor.focus()
+		})
+
+		runButton.addEventListener('click', run)
+		editor.addEventListener('keydown', (event) => {
+			if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+				event.preventDefault()
+				run()
+			}
+		})
+
+		window.addEventListener('beforeunload', stopPythonWorker, { once: true })
+
+		async function run() {
+			drafts[language] = editor.value
+			setBusy(true)
+			output.textContent = language === 'python' ? 'بيتم تجهيز Python وتشغيل الكود…' : 'بيتم تشغيل الكود…'
+			try {
+				const result =
+					language === 'python'
+						? await runPython(editor.value)
+						: await runJavaScript(editor.value)
+				output.textContent = result || 'تم تشغيل الكود من غير مخرجات.'
+			} catch (error) {
+				output.textContent = formatError(error)
+			} finally {
+				setBusy(false)
+			}
+		}
+
+		function setBusy(isBusy) {
+			runButton.disabled = isBusy
+			runButton.textContent = isBusy ? 'جاري التشغيل…' : 'تشغيل ▶'
+		}
+
+		function ensurePythonWorker() {
+			if (!pythonWorker) {
+				const source = createPythonWorkerSource(
+					window.ftLandingConfig?.pyodideIndexUrl ||
+						'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/'
+				)
+				pythonWorkerUrl = URL.createObjectURL(
+					new Blob([source], { type: 'text/javascript' })
+				)
+				pythonWorker = new Worker(pythonWorkerUrl)
+			}
+			return pythonWorker
+		}
+
+		function schedulePythonPreload() {
+			const trigger = () => preloadPythonWorker()
+			if ('requestIdleCallback' in window) {
+				window.requestIdleCallback(trigger, { timeout: 4000 })
+			} else {
+				window.setTimeout(trigger, 2000)
+			}
+		}
+
+		function preloadPythonWorker() {
+			if (pythonWorkerReady || pythonPreloadStarted) return
+			pythonPreloadStarted = true
+			const worker = ensurePythonWorker()
+			worker.addEventListener('message', function onMessage(event) {
+				if (event.data?.type === 'pyodide-ready') {
+					pythonWorkerReady = true
+					worker.removeEventListener('message', onMessage)
+				}
+			})
+			worker.postMessage({ type: 'preload' })
+		}
+
+		function runPython(code) {
+			const worker = ensurePythonWorker()
+
+			return new Promise((resolve, reject) => {
+				// Reusing an already-initialized worker only needs the strict
+				// execution timeout; a cold worker gets a much longer budget
+				// since downloading + compiling the Pyodide WASM runtime can
+				// legitimately take well over the old single 30s timeout.
+				let timer = window.setTimeout(
+					() => {
+						stopPythonWorker()
+						reject(
+							new Error(
+								pythonWorkerReady
+									? 'الكود استغرق وقتًا أطول من المسموح وتم إيقافه.'
+									: 'تعذر تجهيز بيئة Python في الوقت المتاح. حاول تاني.'
+							)
+						)
+					},
+					pythonWorkerReady ? PYTHON_EXECUTION_TIMEOUT_MS : PYTHON_INIT_TIMEOUT_MS
+				)
+
+				worker.onmessage = ({ data }) => {
+					if (data.type === 'status') {
+						output.textContent = data.message
+						return
+					}
+					if (data.type === 'pyodide-ready') {
+						// Initialization finished; switch to the strict
+						// execution timeout for the actual code run so a
+						// user's infinite loop still gets cut off quickly.
+						pythonWorkerReady = true
+						window.clearTimeout(timer)
+						timer = window.setTimeout(() => {
+							stopPythonWorker()
+							reject(new Error('الكود استغرق وقتًا أطول من المسموح وتم إيقافه.'))
+						}, PYTHON_EXECUTION_TIMEOUT_MS)
+						return
+					}
+					window.clearTimeout(timer)
+					if (data.type === 'result') {
+						resolve([data.stdout, data.stderr].filter(Boolean).join('\n'))
+					} else {
+						reject(new Error(data.message || 'حصل خطأ أثناء تشغيل Python.'))
+					}
+				}
+				worker.onerror = (event) => {
+					window.clearTimeout(timer)
+					stopPythonWorker()
+					reject(new Error(event.message || 'تعذر تشغيل بيئة Python.'))
+				}
+				worker.postMessage({ type: 'run', code })
+			})
+		}
+
+		function stopPythonWorker() {
+			pythonWorker?.terminate()
+			pythonWorker = null
+			pythonWorkerReady = false
+			pythonPreloadStarted = false
+			if (pythonWorkerUrl) URL.revokeObjectURL(pythonWorkerUrl)
+			pythonWorkerUrl = null
+		}
+	}
+
+	function createPythonWorkerSource(indexUrl) {
+		return `
+let pyodide;
+let pyodideLoading = null;
+const indexURL = ${JSON.stringify(indexUrl)};
+
+function ensurePyodide() {
+  if (pyodide) return Promise.resolve(pyodide);
+  if (!pyodideLoading) {
+    pyodideLoading = (async () => {
+      self.postMessage({ type: 'status', message: 'بيتم تحميل بيئة Python لأول مرة…' });
+      importScripts(indexURL + 'pyodide.js');
+      pyodide = await loadPyodide({ indexURL });
+      self.postMessage({ type: 'pyodide-ready' });
+      return pyodide;
+    })();
+  }
+  return pyodideLoading;
+}
+
+self.onmessage = async ({ data }) => {
+  try {
+    if (data.type === 'preload') {
+      await ensurePyodide();
+      return;
+    }
+    await ensurePyodide();
+    let stdout = '';
+    let stderr = '';
+    pyodide.setStdout({ batched: text => { stdout += text + '\\n'; } });
+    pyodide.setStderr({ batched: text => { stderr += text + '\\n'; } });
+    pyodide.globals.set('__ft_code', String(data.code || ''));
+    try {
+      await pyodide.runPythonAsync('exec(compile(__ft_code, "<public-lab>", "exec"), {"__name__": "__main__"})');
+      self.postMessage({ type: 'result', stdout, stderr });
+    } finally {
+      pyodide.globals.delete('__ft_code');
+    }
+  } catch (error) {
+    self.postMessage({ type: 'error', message: error.stack || error.message || String(error) });
+  }
+};`
+	}
+
+	function runJavaScript(code) {
+		return new Promise((resolve, reject) => {
+			const source = `
+self.onmessage = ({ data }) => {
+  const logs = [];
+  const stringify = value => {
+    if (typeof value === 'string') return value;
+    try { return JSON.stringify(value, null, 2); } catch (_) { return String(value); }
+  };
+  console.log = (...values) => logs.push(values.map(stringify).join(' '));
+  console.info = console.log;
+  console.warn = console.log;
+  console.error = console.log;
+  try {
+    new Function(String(data.code || ''))();
+    self.postMessage({ type: 'result', output: logs.join('\\n') });
+  } catch (error) {
+    self.postMessage({ type: 'error', message: error.stack || error.message || String(error) });
+  }
+};`
+			const workerUrl = URL.createObjectURL(
+				new Blob([source], { type: 'text/javascript' })
+			)
+			const worker = new Worker(workerUrl)
+			const timer = window.setTimeout(() => {
+				cleanup()
+				reject(new Error('الكود استغرق وقتًا أطول من المسموح وتم إيقافه.'))
+			}, 5000)
+
+			worker.onmessage = ({ data }) => {
+				cleanup()
+				if (data.type === 'result') resolve(data.output)
+				else reject(new Error(data.message || 'حصل خطأ أثناء تشغيل JavaScript.'))
+			}
+			worker.onerror = (event) => {
+				cleanup()
+				reject(new Error(event.message || 'تعذر تشغيل JavaScript.'))
+			}
+			worker.postMessage({ code })
+
+			function cleanup() {
+				window.clearTimeout(timer)
+				worker.terminate()
+				URL.revokeObjectURL(workerUrl)
+			}
+		})
+	}
+
+	function formatError(error) {
+		if (!error) return 'حصل خطأ غير متوقع أثناء تشغيل الكود.'
+		return error.message || String(error)
+	}
+})()

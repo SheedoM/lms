@@ -1,0 +1,251 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ settings.site_title }}{% endblock %}
+
+{% block head_include %}
+<meta name="description" content="{{ settings.hero_description }}" />
+<link rel="stylesheet" href="/assets/lms/landing/landing.css?v={{ landing_asset_version() }}" />
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block page_content %}
+<div class="ft-public-site" dir="rtl" lang="ar">
+	{% include "lms/templates/public_site/header.html" %}
+
+	<main>
+		<section class="ft-hero" id="home">
+			<div class="ft-container ft-hero-grid">
+				<div class="ft-hero-side ft-hero-side-right">
+					<div class="ft-hero-copy-card">
+						<span class="ft-kicker">{{ settings.hero_right_title }}</span>
+						<p>{{ settings.hero_right_text }}</p>
+					</div>
+					<div class="ft-ui-card ft-terminal-card" aria-hidden="true" data-hero-terminal data-terminal-lines="{{ settings.hero_terminal_lines|e }}">
+						<div class="ft-terminal-head">
+							<span class="ft-terminal-dot ft-terminal-dot-red"></span>
+							<span class="ft-terminal-dot ft-terminal-dot-yellow"></span>
+							<span class="ft-terminal-dot ft-terminal-dot-green"></span>
+						</div>
+						<pre class="ft-terminal-body" data-terminal-output dir="ltr"></pre>
+					</div>
+					<div class="ft-code-mini" aria-hidden="true">
+						<code>const goal = "Build";<br />learn(); practice();<br /><span>// مشروع حقيقي</span></code>
+					</div>
+				</div>
+
+				<div class="ft-hero-center">
+					<div class="ft-hero-portrait-wrap">
+						<div class="ft-circuit-orbit" aria-hidden="true"></div>
+						{% if settings.hero_image %}
+							<img class="ft-hero-portrait" src="{{ settings.hero_image }}" alt="{{ settings.instructor_name }}" />
+						{% else %}
+							<div class="ft-hero-placeholder" aria-label="{{ settings.instructor_name }}">SF</div>
+						{% endif %}
+					</div>
+					<h1>{{ settings.hero_heading }}</h1>
+					<p class="ft-hero-description">{{ settings.hero_description }}</p>
+					<div class="ft-hero-actions">
+						<a class="ft-button ft-button-primary ft-button-large" href="/signup">{{ settings.hero_primary_label }}</a>
+						<a class="ft-button ft-button-secondary ft-button-large" href="#courses">{{ settings.hero_secondary_label }}</a>
+					</div>
+				</div>
+
+				<div class="ft-hero-side ft-hero-side-left">
+					<div class="ft-hero-copy-card">
+						<span class="ft-kicker">{{ settings.hero_left_title }}</span>
+						<p>{{ settings.hero_left_text }}</p>
+					</div>
+					<div class="ft-project-preview" aria-hidden="true">
+						<div class="ft-project-preview-screen">
+							<div class="ft-project-preview-bar">
+								<span></span><span></span><span></span>
+							</div>
+							<div class="ft-project-preview-body">
+								<div class="ft-project-preview-row"><i></i><b></b></div>
+								<div class="ft-project-preview-row"><i></i><b></b></div>
+								<div class="ft-project-preview-row"><i></i><b></b></div>
+							</div>
+						</div>
+						<strong>Mini Project</strong>
+						<small>من الفكرة للتطبيق</small>
+					</div>
+					<div class="ft-output-mini" aria-hidden="true">
+						<span>Output</span>
+						<code>Build • Learn • Ship</code>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="ft-section" id="courses">
+			<div class="ft-container">
+				<div class="ft-section-heading" data-reveal>
+					<span class="ft-section-icon">⌘</span>
+					<h2>{{ settings.courses_heading }}</h2>
+				</div>
+
+				<div class="ft-course-catalogue" data-course-catalogue data-reveal>
+					<div class="ft-course-tabs" role="tablist" aria-label="تصنيفات الكورسات">
+						{% for category in categories %}
+						<button
+							type="button"
+							role="tab"
+							class="ft-course-tab {% if category.slug == default_category %}is-active{% endif %}"
+							aria-selected="{{ 'true' if category.slug == default_category else 'false' }}"
+							data-course-tab="{{ category.slug }}"
+						>
+							{{ category.category_name }}
+						</button>
+						{% endfor %}
+					</div>
+
+					{% for category in categories %}
+					<div class="ft-course-panel {% if category.slug == default_category %}is-active{% endif %}" role="tabpanel" data-course-panel="{{ category.slug }}">
+						{% if category.offerings %}
+						<div class="ft-course-grid {% if category.offerings|length == 1 %}has-single-card{% endif %}">
+							{% for offering in category.offerings %}
+								{% include "lms/templates/public_site/course_card.html" %}
+							{% endfor %}
+						</div>
+						{% else %}
+						<div class="ft-empty-state">
+							<div class="ft-empty-icon">&lt;/&gt;</div>
+							<h3>{{ category.empty_state_title }}</h3>
+							<p>{{ category.empty_state_message }}</p>
+						</div>
+						{% endif %}
+					</div>
+					{% endfor %}
+				</div>
+			</div>
+		</section>
+
+		<section class="ft-section ft-lab-section" id="coding-lab">
+			<div class="ft-container">
+				<div class="ft-section-heading" data-reveal>
+					<span class="ft-section-icon">&lt;/&gt;</span>
+					<h2>{{ settings.lab_heading }}</h2>
+					<p>{{ settings.lab_description }}</p>
+				</div>
+				<div class="ft-public-lab" data-public-lab data-reveal>
+					<div class="ft-lab-toolbar">
+						<div class="ft-language-tabs" role="tablist">
+							<button type="button" class="is-active" data-lab-language="python">Python</button>
+							<button type="button" data-lab-language="javascript">JavaScript</button>
+						</div>
+						<div class="ft-lab-actions">
+							<button type="button" class="ft-button ft-button-ghost" data-lab-reset>إعادة</button>
+							<button type="button" class="ft-button ft-button-primary" data-lab-run>تشغيل ▶</button>
+						</div>
+					</div>
+					<div class="ft-lab-grid">
+						<div class="ft-code-editor-shell">
+							<div class="ft-editor-lines" aria-hidden="true">1<br />2<br />3<br />4<br />5<br />6</div>
+							<textarea spellcheck="false" aria-label="محرر الكود" data-lab-editor data-python-code="{{ settings.python_starter_code|e }}" data-javascript-code="{{ settings.javascript_starter_code|e }}">{{ settings.python_starter_code }}</textarea>
+						</div>
+						<div class="ft-lab-output" aria-live="polite">
+							<div class="ft-output-title">النتيجة</div>
+							<pre data-lab-output>اضغط تشغيل علشان تشوف النتيجة هنا.</pre>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="ft-section ft-about-section" id="about">
+			<div class="ft-container">
+				<div class="ft-section-heading" data-reveal>
+					<span class="ft-section-icon">◉</span>
+					<h2>{{ settings.about_heading }} <span class="ft-about-name-accent">{{ settings.instructor_name }}</span></h2>
+				</div>
+
+				<div class="ft-about-card" data-reveal>
+					<div class="ft-about-intro">
+						<div class="ft-about-portrait-column">
+							<div class="ft-about-portrait-wrap">
+								<div class="ft-circuit-orbit" aria-hidden="true"></div>
+								{% if settings.instructor_image %}
+									<img src="{{ settings.instructor_image }}" alt="{{ settings.instructor_name }}" class="ft-about-portrait" />
+								{% else %}
+									<div class="ft-about-placeholder">SF</div>
+								{% endif %}
+							</div>
+						</div>
+
+						<div class="ft-about-copy">
+							<h2>{{ settings.instructor_name }}</h2>
+							<strong>{{ settings.instructor_role }}</strong>
+							<div class="ft-rich-text">{{ settings.about_text|safe }}</div>
+						</div>
+					</div>
+
+					<div class="ft-partners">
+						<h3>{{ settings.partners_heading }}</h3>
+						{% if settings.partners %}
+						<div class="ft-partner-strip" data-reveal-stagger>
+							{% for partner in settings.partners %}
+								{% if partner.website_url %}<a href="{{ partner.website_url }}" target="_blank" rel="noreferrer">{% else %}<div>{% endif %}
+									<img src="{{ partner.logo }}" alt="{{ partner.organization_name }}" loading="lazy" />
+								{% if partner.website_url %}</a>{% else %}</div>{% endif %}
+							{% endfor %}
+						</div>
+						{% endif %}
+					</div>
+				</div>
+
+				<div class="ft-session-gallery-full" data-reveal>
+					<h3>{{ settings.gallery_heading }}</h3>
+					{% if settings.gallery_items %}
+					<div class="ft-session-gallery" data-reveal-stagger>
+						{% for item in settings.gallery_items[:4] %}
+						<figure>
+							<img src="{{ item.image }}" alt="{{ item.caption or settings.gallery_heading }}" loading="lazy" />
+							{% if item.caption %}<figcaption>{{ item.caption }}</figcaption>{% endif %}
+						</figure>
+						{% endfor %}
+					</div>
+					{% else %}
+					<div class="ft-gallery-placeholder"><span>صور الجلسات</span></div>
+					{% endif %}
+				</div>
+			</div>
+		</section>
+
+		<section class="ft-section ft-faq-section" id="faq">
+			<div class="ft-container ft-faq-container">
+				<div class="ft-section-heading" data-reveal>
+					<span class="ft-section-icon">?</span>
+					<h2>{{ settings.faq_heading }}</h2>
+				</div>
+				<div class="ft-faq-list" data-reveal>
+					{% for item in settings.faqs %}
+					<details class="ft-faq-item">
+						<summary>{{ item.question }}<span>+</span></summary>
+						<div class="ft-faq-answer">{{ item.answer|safe }}</div>
+					</details>
+					{% else %}
+					<details class="ft-faq-item">
+						<summary>هل الكورسات مناسبة للمبتدئين؟<span>+</span></summary>
+						<div class="ft-faq-answer"><p>كل كورس بيوضح المستوى المطلوب والمتطلبات السابقة في صفحة التفاصيل.</p></div>
+					</details>
+					<details class="ft-faq-item">
+						<summary>هل المحتوى عملي؟<span>+</span></summary>
+						<div class="ft-faq-answer"><p>الشرح مرتبط بتطبيقات وتمارين ومشاريع تساعدك تستخدم اللي اتعلمته بشكل فعلي.</p></div>
+					</details>
+					{% endfor %}
+				</div>
+			</div>
+		</section>
+	</main>
+
+	{% include "lms/templates/public_site/footer.html" %}
+</div>
+<script>
+window.ftLandingConfig = {
+	pyodideIndexUrl: "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/"
+};
+</script>
+<script src="/assets/lms/landing/landing.js?v={{ landing_asset_version() }}" defer></script>
+{% endblock %}

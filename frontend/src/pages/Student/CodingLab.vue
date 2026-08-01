@@ -7,10 +7,10 @@
 		<div class="mb-3 flex shrink-0 flex-wrap items-end justify-between gap-3">
 			<div>
 				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ft-muted)]">
-					Free workspace
+					{{ __('Free workspace') }}
 				</p>
-				<h1 class="mt-0.5 text-2xl font-semibold">Coding Lab</h1>
-				<p class="text-sm text-[var(--ft-muted)]">Experiment freely.</p>
+				<h1 class="mt-0.5 text-2xl font-semibold">{{ __('Coding Lab') }}</h1>
+				<p class="text-sm text-[var(--ft-muted)]">{{ __('Experiment freely.') }}</p>
 			</div>
 			<div
 				class="inline-flex rounded-xl border border-[var(--ft-border)] bg-[var(--ft-surface)] p-1"
@@ -23,7 +23,7 @@
 					class="rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
 					:class="
 						mode === option.value
-							? 'bg-[#9cff45] text-[#05131a]'
+							? 'ft-primary-button'
 							: 'text-[var(--ft-muted)] hover:text-[var(--ft-ink)]'
 					"
 					@click="setMode(option.value)"

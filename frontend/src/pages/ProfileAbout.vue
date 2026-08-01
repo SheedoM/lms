@@ -1,5 +1,5 @@
 <template>
-	<div class="mt-7 mb-10">
+	<div v-if="profile.data.bio || !isPureStudentProfile" class="mt-7 mb-10">
 		<h2 class="mb-3 text-lg-semibold text-ink-gray-9">
 			{{ __('About') }}
 		</h2>
@@ -119,7 +119,7 @@
 	</div>
 </template>
 <script setup>
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import { createResource, HoverCard, Button } from 'frappe-ui'
 import { LinkedinIcon, Twitter } from 'lucide-vue-next'
 import { sessionStore } from '@/stores/session'
@@ -136,6 +136,13 @@ const props = defineProps({
 		type: Object,
 		required: true,
 	},
+})
+
+const PROFILE_PRIVILEGED_ROLES = ['Moderator', 'Course Creator', 'Batch Evaluator', 'System Manager']
+const isPureStudentProfile = computed(() => {
+	const roles = props.profile.data?.roles
+	if (!Array.isArray(roles)) return false
+	return !roles.some((role) => PROFILE_PRIVILEGED_ROLES.includes(role))
 })
 
 const badges = createResource({

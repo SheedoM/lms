@@ -19,7 +19,10 @@
 		</template>
 		<template #default>
 			<div class="text-base">
-				<div class="grid grid-cols-2 gap-10">
+				<div
+					class="grid gap-10"
+					:class="isPureStudent ? 'grid-cols-1 max-w-md' : 'grid-cols-2'"
+				>
 					<div class="space-y-4">
 						<div class="space-y-4">
 							<Uploader
@@ -39,31 +42,32 @@
 								:label="__('Last Name')"
 								:required="true"
 							/>
-							<FormControl v-model="profile.headline" :label="__('Headline')" />
+							<FormControl
+								v-if="!isPureStudent"
+								v-model="profile.headline"
+								:label="__('Headline')"
+							/>
 
-							<FormControl
-								v-model="profile.linkedin"
-								:label="__('LinkedIn ID')"
-							/>
-							<FormControl v-model="profile.github" :label="__('GitHub ID')" />
-							<FormControl
-								v-model="profile.twitter"
-								:label="__('Twitter ID')"
-							/>
+							<template v-if="!isPureStudent">
+								<FormControl
+									v-model="profile.linkedin"
+									:label="__('LinkedIn ID')"
+								/>
+								<FormControl v-model="profile.github" :label="__('GitHub ID')" />
+								<FormControl
+									v-model="profile.twitter"
+									:label="__('Twitter ID')"
+								/>
+							</template>
 						</div>
 					</div>
-					<div class="space-y-4">
+					<div v-if="!isPureStudent" class="space-y-4">
 						<FormControl
 							v-model="profile.open_to"
 							type="select"
 							:options="[' ', 'Work', 'Hiring']"
 							:label="__('Open to')"
 							:placeholder="__('Looking for new work or hiring talent?')"
-						/>
-						<Link
-							:label="__('Language')"
-							v-model="profile.language"
-							doctype="Language"
 						/>
 						<div>
 							<div class="mb-1.5 text-p-sm-medium text-ink-gray-7">
@@ -91,14 +95,14 @@ import {
 	FormControl,
 	toast,
 } from 'frappe-ui'
-import { ref, reactive, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { sanitizeHTML } from '@/utils'
-import Link from '@/components/Controls/Link.vue'
 import RichTextEditor from '@/components/RichTextEditor.vue'
+import { usersStore } from '@/stores/user'
+import { isPureStudentData } from '@/utils/studentExperience'
 
 const show = defineModel()
 const reloadProfile = defineModel('reloadProfile')
-const hasLanguageChanged = ref(false)
 const isDirty = ref(false)
 
 const props = defineProps({
@@ -107,6 +111,9 @@ const props = defineProps({
 		required: true,
 	},
 })
+
+const { userResource } = usersStore()
+const isPureStudent = computed(() => isPureStudentData(userResource?.data))
 
 const profile = reactive({
 	first_name: '',
@@ -163,10 +170,6 @@ const saveProfile = () => {
 			onSuccess() {
 				show.value = false
 				reloadProfile.value.reload()
-				if (hasLanguageChanged.value) {
-					hasLanguageChanged.value = false
-					window.location.reload()
-				}
 			},
 			onError(err) {
 				toast.error(err.messages?.[0] || err)
@@ -203,7 +206,6 @@ watch(
 			profile.first_name = newVal.first_name
 			profile.last_name = newVal.last_name
 			profile.headline = newVal.headline
-			profile.language = newVal.language
 			profile.bio = newVal.bio
 			profile.open_to = newVal.open_to
 			profile.linkedin = newVal.linkedin
@@ -211,15 +213,6 @@ watch(
 			profile.twitter = newVal.twitter
 			profile.image = newVal.user_image
 			isDirty.value = false
-		}
-	}
-)
-
-watch(
-	() => profile.language,
-	() => {
-		if (profile.language !== props.profile.data.language) {
-			hasLanguageChanged.value = true
 		}
 	}
 )
