@@ -1,0 +1,43 @@
+<footer class="ft-site-footer">
+	<div class="ft-container ft-footer-grid">
+		<div class="ft-footer-brand">
+			<a class="ft-brand ft-brand-light" href="/">
+				{% if settings.logo %}
+					<img src="{{ settings.logo }}" alt="{{ settings.brand_name }}" class="ft-brand-logo" />
+				{% else %}
+					<span class="ft-brand-mark" aria-hidden="true">FT</span>
+				{% endif %}
+				<span>{{ settings.brand_name }}</span>
+			</a>
+			<p>{{ settings.footer_text }}</p>
+		</div>
+
+		<div>
+			<h3>روابط سريعة</h3>
+			<a href="/#courses">{{ settings.nav_courses_label }}</a>
+			<a href="/#coding-lab">{{ settings.nav_lab_label }}</a>
+			<a href="/#about">{{ settings.nav_about_label }}</a>
+			<a href="/#faq">{{ settings.nav_faq_label }}</a>
+		</div>
+
+		<div>
+			<h3>الحساب</h3>
+			<a href="/login">{{ settings.login_button_label }}</a>
+			<a href="/signup">{{ settings.signup_button_label }}</a>
+			<a href="/lms">المنصة التعليمية</a>
+		</div>
+
+		<div>
+			<h3>تواصل معنا</h3>
+			{% if settings.contact_email %}<a href="mailto:{{ settings.contact_email }}">{{ settings.contact_email }}</a>{% endif %}
+			{% if settings.contact_phone %}<a href="tel:{{ settings.contact_phone|replace(' ', '') }}">{{ settings.contact_phone }}</a>{% endif %}
+			<div class="ft-social-links" aria-label="حسابات التواصل الاجتماعي">
+				{% if settings.facebook_url %}<a href="{{ settings.facebook_url }}" target="_blank" rel="noreferrer" aria-label="Facebook">f</a>{% endif %}
+				{% if settings.linkedin_url %}<a href="{{ settings.linkedin_url }}" target="_blank" rel="noreferrer" aria-label="LinkedIn">in</a>{% endif %}
+				{% if settings.youtube_url %}<a href="{{ settings.youtube_url }}" target="_blank" rel="noreferrer" aria-label="YouTube">▶</a>{% endif %}
+				{% if settings.instagram_url %}<a href="{{ settings.instagram_url }}" target="_blank" rel="noreferrer" aria-label="Instagram">◎</a>{% endif %}
+			</div>
+		</div>
+	</div>
+	<div class="ft-footer-bottom">© {{ frappe.utils.now_datetime().year }} {{ settings.brand_name }}. جميع الحقوق محفوظة.</div>
+</footer>
