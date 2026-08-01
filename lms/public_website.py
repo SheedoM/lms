@@ -244,7 +244,7 @@ def apply_common_context(context):
 	context.settings = get_public_settings()
 	context.is_guest = frappe.session.user == "Guest"
 	context.current_year = now_datetime().year
-	context.csrf_token = frappe.sessions.get_csrf_token()
+	context.csrf_token = frappe.session.csrf_token
 	return context
 
 
@@ -382,4 +382,14 @@ def submit_subscription_request(
 	doc.payment_screenshot = payment_screenshot
 	doc.notes = (notes or "").strip()
 	doc.insert(ignore_permissions=True)
+	frappe.db.set_value(
+		"File",
+		{"file_url": payment_screenshot, "owner": frappe.session.user},
+		{
+			"attached_to_doctype": "Course Subscription Request",
+			"attached_to_name": doc.name,
+			"attached_to_field": "payment_screenshot",
+		},
+		update_modified=False,
+	)
 	return {"name": doc.name, "already_exists": False}
