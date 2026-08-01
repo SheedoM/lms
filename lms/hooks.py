@@ -147,7 +147,7 @@ scheduler_events = {
 		"lms.job.doctype.job_opportunity.job_opportunity.update_job_openings",
 		"lms.lms.doctype.lms_payment.lms_payment.send_payment_reminder",
 		"lms.lms.doctype.lms_batch.lms_batch.send_batch_start_reminder",
-		"lms.lms.doctype.lms_live_class.lms_live_class.update_attendance",
+		"lms.lms.doctype.lms_live_class.lms_live_class.send_live_class_reminder",
 		"lms.lms.doctype.lms_course.lms_course.send_notification_for_published_courses",
 		"lms.lms.doctype.course_lesson.course_lesson.rename_settled_untitled_lessons",
 	],
@@ -171,7 +171,7 @@ override_whitelisted_methods = {
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
 # override_doctype_dashboards = {
-# 	"Task": "lms.task.doctype.task.task.get_dashboard_data"
+# 	"Task": "public/js/doctype.js"
 # }
 
 # exempt linked doctypes from being automatically cancelled
