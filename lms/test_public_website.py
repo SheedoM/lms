@@ -1,5 +1,8 @@
+import base64
+
 import frappe
 from frappe.tests import UnitTestCase
+from frappe.utils.file_manager import save_file
 
 from lms.public_website import (
 	DEFAULT_SETTINGS,
@@ -7,6 +10,11 @@ from lms.public_website import (
 	get_primary_action_url,
 	serialize_offering,
 	submit_subscription_request,
+)
+
+# 1x1 transparent PNG, used as real file bytes for upload-backed tests.
+TEST_PNG_BYTES = base64.b64decode(
+	"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
 )
 
 
@@ -91,14 +99,13 @@ class TestPublicLearningWebsite(UnitTestCase):
 
 	def test_paid_subscription_request_is_created_once(self):
 		offering = self._create_offering("test-paid-offering", "Paid Subscription")
-		file_doc = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test-payment-proof.png",
-				"file_url": f"/private/files/test-payment-{frappe.generate_hash()}.png",
-				"is_private": 1,
-			}
-		).insert(ignore_permissions=True)
+		file_doc = save_file(
+			"test-payment-proof.png",
+			TEST_PNG_BYTES,
+			None,
+			None,
+			is_private=1,
+		)
 		self.created.append(("File", file_doc.name))
 
 		first = submit_subscription_request(
