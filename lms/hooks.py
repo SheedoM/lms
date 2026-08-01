@@ -184,6 +184,7 @@ website_route_rules = [
 	{"from_route": f"/{get_lms_path()}", "to_route": "_lms"},
 	{"from_route": "/courses/<slug>", "to_route": "course"},
 	{"from_route": "/subscribe/<slug>", "to_route": "subscribe"},
+	{"from_route": "/enroll/<slug>", "to_route": "enroll"},
 	{
 		"from_route": "/courses/<course_name>/<certificate_id>",
 		"to_route": "certificate",
