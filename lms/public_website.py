@@ -51,7 +51,7 @@ DEFAULT_SETTINGS = frappe._dict(
 def get_public_settings():
 	"""Return editable landing settings, with safe defaults before the first migration."""
 	settings = frappe._dict(DEFAULT_SETTINGS.copy())
-	if not frappe.db.table_exists("Landing Page Settings"):
+	if not frappe.db.exists("DocType", "Landing Page Settings"):
 		settings.gallery_items = []
 		settings.partners = []
 		settings.faqs = []
