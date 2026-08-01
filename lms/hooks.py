@@ -44,16 +44,16 @@ web_include_js = []
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
-# doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
-# doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
+# doctype_js = {"doctype": "public/js/doctype.js"}
+# doctype_list_js = {"doctype": "public/js/doctype_list.js"}
+# doctype_tree_js = {"doctype": "public/js/doctype_tree.js"}
+# doctype_calendar_js = {"doctype": "public/js/doctype_calendar.js"}
 
 # Home Pages
 # ----------
 
-# application home page (will override Website Settings)
-# home_page = "login"
+# The public FaragallahTech learning site owns the root URL.
+home_page = "index"
 
 # website user home page (by Role)
 # role_home_page = {
@@ -147,7 +147,7 @@ scheduler_events = {
 		"lms.job.doctype.job_opportunity.job_opportunity.update_job_openings",
 		"lms.lms.doctype.lms_payment.lms_payment.send_payment_reminder",
 		"lms.lms.doctype.lms_batch.lms_batch.send_batch_start_reminder",
-		"lms.lms.doctype.lms_live_class.lms_live_class.send_live_class_reminder",
+		"lms.lms.doctype.lms_live_class.lms_live_class.update_attendance",
 		"lms.lms.doctype.lms_course.lms_course.send_notification_for_published_courses",
 		"lms.lms.doctype.course_lesson.course_lesson.rename_settled_untitled_lessons",
 	],
@@ -171,7 +171,7 @@ override_whitelisted_methods = {
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
 # override_doctype_dashboards = {
-# 	"Task": "lms.task.get_dashboard_data"
+# 	"Task": "lms.task.doctype.task.task.get_dashboard_data"
 # }
 
 # exempt linked doctypes from being automatically cancelled
@@ -182,6 +182,7 @@ override_whitelisted_methods = {
 website_route_rules = [
 	{"from_route": f"/{get_lms_path()}/<path:app_path>", "to_route": "_lms"},
 	{"from_route": f"/{get_lms_path()}", "to_route": "_lms"},
+	{"from_route": "/courses/<slug>", "to_route": "course"},
 	{
 		"from_route": "/courses/<course_name>/<certificate_id>",
 		"to_route": "certificate",
@@ -190,11 +191,7 @@ website_route_rules = [
 
 website_redirects = [
 	{"source": "/update-profile", "target": "/edit-profile"},
-	{"source": "/courses", "target": f"/{get_lms_path()}/courses"},
-	{
-		"source": r"^/courses/.*$",
-		"target": f"/{get_lms_path()}/courses",
-	},
+	{"source": "/courses", "target": "/#courses"},
 	{"source": "/batches", "target": f"/{get_lms_path()}/batches"},
 	{
 		"source": r"/batches/(.*)",
