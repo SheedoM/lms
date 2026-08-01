@@ -4,7 +4,7 @@
 
 {% block head_include %}
 <meta name="description" content="{{ offering.short_description or settings.hero_description }}" />
-<link rel="stylesheet" href="/assets/lms/landing/landing.css" />
+<link rel="stylesheet" href="/assets/lms/landing/landing.css?v={{ landing_asset_version() }}" />
 <link rel="stylesheet" href="/assets/lms/landing/detail.css" />
 {% endblock %}
 
@@ -130,5 +130,5 @@
 
 	{% include "lms/templates/public_site/footer.html" %}
 </div>
-<script src="/assets/lms/landing/landing.js" defer></script>
+<script src="/assets/lms/landing/landing.js?v={{ landing_asset_version() }}" defer></script>
 {% endblock %}

@@ -28,14 +28,30 @@
 		</div>
 
 		<div>
-			<h3>تواصل معنا</h3>
+			<h3>{{ settings.social_heading }}</h3>
 			{% if settings.contact_email %}<a href="mailto:{{ settings.contact_email }}">{{ settings.contact_email }}</a>{% endif %}
 			{% if settings.contact_phone %}<a href="tel:{{ settings.contact_phone|replace(' ', '') }}">{{ settings.contact_phone }}</a>{% endif %}
 			<div class="ft-social-links" aria-label="حسابات التواصل الاجتماعي">
-				{% if settings.facebook_url %}<a href="{{ settings.facebook_url }}" target="_blank" rel="noreferrer" aria-label="Facebook">f</a>{% endif %}
-				{% if settings.linkedin_url %}<a href="{{ settings.linkedin_url }}" target="_blank" rel="noreferrer" aria-label="LinkedIn">in</a>{% endif %}
-				{% if settings.youtube_url %}<a href="{{ settings.youtube_url }}" target="_blank" rel="noreferrer" aria-label="YouTube">▶</a>{% endif %}
-				{% if settings.instagram_url %}<a href="{{ settings.instagram_url }}" target="_blank" rel="noreferrer" aria-label="Instagram">◎</a>{% endif %}
+				{% if settings.facebook_url %}
+				<a href="{{ settings.facebook_url }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.9h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.9h-2.34V22c4.78-.76 8.44-4.92 8.44-9.94Z"/></svg>
+				</a>
+				{% endif %}
+				{% if settings.linkedin_url %}
+				<a href="{{ settings.linkedin_url }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6.94 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM3.2 8.75h3.5V21H3.2V8.75Zm6.2 0h3.36v1.68h.05c.47-.88 1.6-1.8 3.3-1.8 3.53 0 4.18 2.3 4.18 5.3V21h-3.5v-5.5c0-1.31-.02-3-1.84-3-1.84 0-2.12 1.43-2.12 2.9V21H9.4V8.75Z"/></svg>
+				</a>
+				{% endif %}
+				{% if settings.youtube_url %}
+				<a href="{{ settings.youtube_url }}" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.36-.43-4.96a3.02 3.02 0 0 0-2.12-2.14C18.88 4.5 12 4.5 12 4.5s-6.88 0-8.45.4a3.02 3.02 0 0 0-2.12 2.14C1 8.64 1 12 1 12s0 3.36.43 4.96a3.02 3.02 0 0 0 2.12 2.14c1.57.4 8.45.4 8.45.4s6.88 0 8.45-.4a3.02 3.02 0 0 0 2.12-2.14C23 15.36 23 12 23 12ZM9.75 15.5v-7l6.1 3.5-6.1 3.5Z"/></svg>
+				</a>
+				{% endif %}
+				{% if settings.instagram_url %}
+				<a href="{{ settings.instagram_url }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+				</a>
+				{% endif %}
 			</div>
 		</div>
 	</div>

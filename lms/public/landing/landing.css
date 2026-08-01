@@ -308,6 +308,7 @@ main .container {
 	background:
 		radial-gradient(circle at center, rgba(34, 160, 107, 0.08), transparent 58%),
 		repeating-radial-gradient(circle at center, transparent 0 38px, rgba(34, 160, 107, 0.08) 39px 40px);
+	animation: ft-orbit-pulse 8s ease-in-out infinite;
 }
 
 .ft-circuit-orbit::before,
@@ -452,6 +453,75 @@ main .container {
 	height: 100%;
 	border-radius: inherit;
 	background: linear-gradient(90deg, var(--ft-green), var(--ft-lime));
+}
+
+.ft-terminal-card {
+	padding: 0;
+	overflow: hidden;
+	background: linear-gradient(160deg, #071b25, #0a3040);
+	border-color: rgba(255, 255, 255, 0.08);
+}
+
+.ft-terminal-head {
+	display: flex;
+	gap: 6px;
+	padding: 10px 12px;
+	background: rgba(255, 255, 255, 0.04);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.ft-terminal-dot {
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	background: #3a565f;
+}
+
+.ft-terminal-dot-red {
+	background: #e2645a;
+}
+
+.ft-terminal-dot-yellow {
+	background: #e3b341;
+}
+
+.ft-terminal-dot-green {
+	background: #57c46e;
+}
+
+.ft-terminal-body {
+	min-height: 108px;
+	margin: 0;
+	padding: 14px 16px 16px;
+	color: #9be8b8;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.82rem;
+	line-height: 1.75;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.ft-terminal-body .ft-terminal-cursor {
+	display: inline-block;
+	width: 0.5em;
+	margin-inline-start: 2px;
+	background: currentColor;
+	animation: ft-cursor-blink 1s step-end infinite;
+}
+
+@keyframes ft-cursor-blink {
+	0%, 49% {
+		opacity: 1;
+	}
+	50%, 100% {
+		opacity: 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ft-terminal-body .ft-terminal-cursor {
+		animation: none;
+	}
 }
 
 .ft-code-mini,
@@ -605,10 +675,15 @@ main .container {
 	display: none;
 	min-height: 330px;
 	padding: 24px;
+	opacity: 0;
+	transform: translateY(6px);
+	transition: opacity 220ms ease, transform 220ms ease;
 }
 
 .ft-course-panel.is-active {
 	display: block;
+	opacity: 1;
+	transform: translateY(0);
 }
 
 .ft-course-grid {
@@ -814,6 +889,13 @@ main .container {
 
 .ft-lab-grid {
 	display: grid;
+	/* The editor and its output are inherently LTR content (code, program
+	   output); keep this area LTR so the editor lands on the left and the
+	   output on the right regardless of the page's RTL direction. The
+	   toolbar above (Arabic labels) is a separate flex row and stays RTL.
+	   !important: the framework's base RTL stylesheet re-asserts
+	   direction: rtl on this element with higher priority otherwise. */
+	direction: ltr !important;
 	grid-template-columns: 1.4fr 0.8fr;
 	min-height: 310px;
 }
@@ -883,10 +965,28 @@ main .container {
 
 .ft-about-layout {
 	display: grid;
-	grid-template-columns: minmax(220px, 0.72fr) minmax(290px, 1fr) minmax(340px, 1.25fr);
+	/* Named areas keep LEFT (portrait + intro, stacked) and RIGHT (session
+	   gallery) explicit instead of relying on source order under RTL, where
+	   the first grid column lands on the right — easy to get backwards. */
+	grid-template-columns: minmax(300px, 0.95fr) minmax(320px, 1.2fr);
+	grid-template-areas:
+		"gallery portrait"
+		"gallery copy";
 	align-items: stretch;
 	gap: 22px;
 	padding: 22px;
+}
+
+.ft-about-portrait-column {
+	grid-area: portrait;
+}
+
+.ft-about-copy {
+	grid-area: copy;
+}
+
+.ft-session-gallery-column {
+	grid-area: gallery;
 }
 
 .ft-about-portrait-column,
@@ -1163,6 +1263,13 @@ main .container {
 	color: white !important;
 	font-size: 0.75rem;
 	font-weight: 700;
+	transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.ft-social-links a:hover {
+	transform: translateY(-2px);
+	background: rgba(34, 160, 107, 0.28);
+	border-color: rgba(34, 160, 107, 0.55);
 }
 
 .ft-footer-bottom {
@@ -1410,6 +1517,13 @@ main .container {
 
 	.ft-about-layout {
 		grid-template-columns: 1fr;
+		/* Session photos read as more inviting than a wall of biography text
+		   on a small screen, so they sit right under the portrait instead of
+		   waiting until after the full "about" copy. */
+		grid-template-areas:
+			"portrait"
+			"gallery"
+			"copy";
 		text-align: center;
 	}
 
@@ -1511,5 +1625,136 @@ main .container {
 
 	.ft-course-detail-copy h1 {
 		font-size: 2rem;
+	}
+}
+
+/* ==========================================================================
+   Motion: circuit pulse, floating hero panels, scroll reveal, stagger.
+   Kept restrained on purpose — slow, subtle, and fully disabled under
+   prefers-reduced-motion (see the query at the end of this block).
+   ========================================================================== */
+
+@keyframes ft-orbit-pulse {
+	0%,
+	100% {
+		opacity: 0.75;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.03);
+	}
+}
+
+@keyframes ft-float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-6px);
+	}
+}
+
+.ft-hero-side .ft-ui-card,
+.ft-hero-side .ft-code-mini,
+.ft-hero-side .ft-project-preview,
+.ft-hero-side .ft-output-mini {
+	animation: ft-float 6.5s ease-in-out infinite;
+}
+
+.ft-hero-side-right .ft-code-mini {
+	animation-delay: 0.4s;
+}
+
+.ft-hero-side-left .ft-project-preview {
+	animation-delay: 0.2s;
+}
+
+.ft-hero-side-left .ft-output-mini {
+	animation-delay: 0.7s;
+}
+
+/* Scroll reveal: JS (landing.js) adds .is-visible via IntersectionObserver
+   the first time each [data-reveal] element enters the viewport. */
+[data-reveal] {
+	opacity: 0;
+	transform: translateY(18px);
+	transition: opacity 600ms ease, transform 600ms ease;
+}
+
+[data-reveal].is-visible {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+/* Staggered entrance for a group of children (gallery figures, partner
+   logos) — JS toggles .is-visible on the container once it scrolls in. */
+[data-reveal-stagger] > * {
+	opacity: 0;
+	transform: translateY(14px);
+	transition: opacity 500ms ease, transform 500ms ease;
+}
+
+[data-reveal-stagger].is-visible > * {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+[data-reveal-stagger] > *:nth-child(1) {
+	transition-delay: 0ms;
+}
+[data-reveal-stagger] > *:nth-child(2) {
+	transition-delay: 60ms;
+}
+[data-reveal-stagger] > *:nth-child(3) {
+	transition-delay: 120ms;
+}
+[data-reveal-stagger] > *:nth-child(4) {
+	transition-delay: 180ms;
+}
+[data-reveal-stagger] > *:nth-child(5) {
+	transition-delay: 240ms;
+}
+[data-reveal-stagger] > *:nth-child(6) {
+	transition-delay: 300ms;
+}
+[data-reveal-stagger] > *:nth-child(7) {
+	transition-delay: 360ms;
+}
+[data-reveal-stagger] > *:nth-child(8) {
+	transition-delay: 420ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ft-circuit-orbit,
+	.ft-hero-side .ft-ui-card,
+	.ft-hero-side .ft-code-mini,
+	.ft-hero-side .ft-project-preview,
+	.ft-hero-side .ft-output-mini,
+	.ft-terminal-body .ft-terminal-cursor {
+		animation: none !important;
+	}
+
+	[data-reveal],
+	[data-reveal-stagger] > * {
+		opacity: 1 !important;
+		transform: none !important;
+		transition: none !important;
+	}
+
+	.ft-course-panel,
+	.ft-button,
+	.ft-course-card,
+	.ft-course-cover img,
+	.ft-social-links a {
+		transition: none !important;
+	}
+
+	.ft-button:hover,
+	.ft-course-card:hover,
+	.ft-course-card:hover .ft-course-cover img,
+	.ft-social-links a:hover {
+		transform: none !important;
 	}
 }

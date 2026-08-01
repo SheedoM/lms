@@ -4,8 +4,8 @@
 
 {% block head_include %}
 <meta name="description" content="{{ _('سجّل الدخول لمنصة') }} {{ settings.brand_name }}" />
-<link rel="stylesheet" href="/assets/lms/landing/landing.css" />
-<link rel="stylesheet" href="/assets/lms/landing/auth.css" />
+<link rel="stylesheet" href="/assets/lms/landing/landing.css?v={{ landing_asset_version() }}" />
+<link rel="stylesheet" href="/assets/lms/landing/auth.css?v={{ landing_asset_version() }}" />
 {% endblock %}
 
 {% block navbar %}{% endblock %}
@@ -56,5 +56,5 @@
 <script>
 window.ftAuthConfig = { csrfToken: {{ csrf_token | tojson }} };
 </script>
-<script src="/assets/lms/landing/auth.js" defer></script>
+<script src="/assets/lms/landing/auth.js?v={{ landing_asset_version() }}" defer></script>
 {% endblock %}

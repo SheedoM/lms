@@ -223,6 +223,7 @@ jinja = {
 		"lms.lms.utils.get_lms_route",
 		"lms.lms.utils.is_instructor",
 		"lms.lms.utils.get_palette",
+		"lms.public_website.landing_asset_version",
 	],
 	"filters": [],
 }

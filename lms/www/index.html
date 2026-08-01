@@ -4,7 +4,7 @@
 
 {% block head_include %}
 <meta name="description" content="{{ settings.hero_description }}" />
-<link rel="stylesheet" href="/assets/lms/landing/landing.css" />
+<link rel="stylesheet" href="/assets/lms/landing/landing.css?v={{ landing_asset_version() }}" />
 {% endblock %}
 
 {% block navbar %}{% endblock %}
@@ -22,10 +22,13 @@
 						<span class="ft-kicker">{{ settings.hero_right_title }}</span>
 						<p>{{ settings.hero_right_text }}</p>
 					</div>
-					<div class="ft-ui-card ft-progress-card" aria-hidden="true">
-						<div class="ft-ui-card-head"><span>تقدمك</span><strong>+7%</strong></div>
-						<div class="ft-progress-track"><span style="width: 78%"></span></div>
-						<small>Python</small>
+					<div class="ft-ui-card ft-terminal-card" aria-hidden="true" data-hero-terminal data-terminal-lines="{{ settings.hero_terminal_lines|e }}">
+						<div class="ft-terminal-head">
+							<span class="ft-terminal-dot ft-terminal-dot-red"></span>
+							<span class="ft-terminal-dot ft-terminal-dot-yellow"></span>
+							<span class="ft-terminal-dot ft-terminal-dot-green"></span>
+						</div>
+						<pre class="ft-terminal-body" data-terminal-output dir="ltr"></pre>
 					</div>
 					<div class="ft-code-mini" aria-hidden="true">
 						<code>const goal = "Build";<br />learn(); practice();<br /><span>// مشروع حقيقي</span></code>
@@ -71,12 +74,12 @@
 
 		<section class="ft-section" id="courses">
 			<div class="ft-container">
-				<div class="ft-section-heading">
+				<div class="ft-section-heading" data-reveal>
 					<span class="ft-section-icon">⌘</span>
 					<h2>{{ settings.courses_heading }}</h2>
 				</div>
 
-				<div class="ft-course-catalogue" data-course-catalogue>
+				<div class="ft-course-catalogue" data-course-catalogue data-reveal>
 					<div class="ft-course-tabs" role="tablist" aria-label="تصنيفات الكورسات">
 						{% for category in categories %}
 						<button
@@ -114,12 +117,12 @@
 
 		<section class="ft-section ft-lab-section" id="coding-lab">
 			<div class="ft-container">
-				<div class="ft-section-heading">
+				<div class="ft-section-heading" data-reveal>
 					<span class="ft-section-icon">&lt;/&gt;</span>
 					<h2>{{ settings.lab_heading }}</h2>
 					<p>{{ settings.lab_description }}</p>
 				</div>
-				<div class="ft-public-lab" data-public-lab>
+				<div class="ft-public-lab" data-public-lab data-reveal>
 					<div class="ft-lab-toolbar">
 						<div class="ft-language-tabs" role="tablist">
 							<button type="button" class="is-active" data-lab-language="python">Python</button>
@@ -146,7 +149,7 @@
 
 		<section class="ft-section ft-about-section" id="about">
 			<div class="ft-container">
-				<div class="ft-about-layout">
+				<div class="ft-about-layout" data-reveal>
 					<div class="ft-about-portrait-column">
 						{% if settings.instructor_image %}
 							<img src="{{ settings.instructor_image }}" alt="{{ settings.instructor_name }}" class="ft-about-portrait" loading="lazy" />
@@ -165,7 +168,7 @@
 					<div class="ft-session-gallery-column">
 						<h3>{{ settings.gallery_heading }}</h3>
 						{% if settings.gallery_items %}
-						<div class="ft-session-gallery">
+						<div class="ft-session-gallery" data-reveal-stagger>
 							{% for item in settings.gallery_items[:4] %}
 							<figure>
 								<img src="{{ item.image }}" alt="{{ item.caption or settings.gallery_heading }}" loading="lazy" />
@@ -179,10 +182,10 @@
 					</div>
 				</div>
 
-				<div class="ft-partners">
+				<div class="ft-partners" data-reveal>
 					<h3>{{ settings.partners_heading }}</h3>
 					{% if settings.partners %}
-					<div class="ft-partner-strip">
+					<div class="ft-partner-strip" data-reveal-stagger>
 						{% for partner in settings.partners %}
 							{% if partner.website_url %}<a href="{{ partner.website_url }}" target="_blank" rel="noreferrer">{% else %}<div>{% endif %}
 								<img src="{{ partner.logo }}" alt="{{ partner.organization_name }}" loading="lazy" />
@@ -196,11 +199,11 @@
 
 		<section class="ft-section ft-faq-section" id="faq">
 			<div class="ft-container ft-faq-container">
-				<div class="ft-section-heading">
+				<div class="ft-section-heading" data-reveal>
 					<span class="ft-section-icon">?</span>
 					<h2>{{ settings.faq_heading }}</h2>
 				</div>
-				<div class="ft-faq-list">
+				<div class="ft-faq-list" data-reveal>
 					{% for item in settings.faqs %}
 					<details class="ft-faq-item">
 						<summary>{{ item.question }}<span>+</span></summary>
@@ -228,5 +231,5 @@ window.ftLandingConfig = {
 	pyodideIndexUrl: "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/"
 };
 </script>
-<script src="/assets/lms/landing/landing.js" defer></script>
+<script src="/assets/lms/landing/landing.js?v={{ landing_asset_version() }}" defer></script>
 {% endblock %}

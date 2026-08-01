@@ -16,6 +16,101 @@
 		})
 	}
 
+	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+	initScrollReveal()
+	initHeroTerminal()
+
+	function initScrollReveal() {
+		const targets = [...document.querySelectorAll('[data-reveal], [data-reveal-stagger]')]
+		if (!targets.length) return
+
+		if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+			targets.forEach((el) => el.classList.add('is-visible'))
+			return
+		}
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (!entry.isIntersecting) return
+					entry.target.classList.add('is-visible')
+					observer.unobserve(entry.target)
+				})
+			},
+			{ threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+		)
+		targets.forEach((el) => observer.observe(el))
+	}
+
+	function initHeroTerminal() {
+		const card = document.querySelector('[data-hero-terminal]')
+		const output = card?.querySelector('[data-terminal-output]')
+		if (!card || !output) return
+
+		const lines = (card.dataset.terminalLines || '')
+			.split('\n')
+			.map((line) => line.trim())
+			.filter(Boolean)
+		if (!lines.length) return
+
+		if (prefersReducedMotion) {
+			output.textContent = lines.join('\n')
+			return
+		}
+
+		const cursor = document.createElement('span')
+		cursor.className = 'ft-terminal-cursor'
+		cursor.setAttribute('aria-hidden', 'true')
+
+		let cancelled = false
+		const start = () => {
+			if (cancelled) return
+			typeLines(output, cursor, lines).then(() => {
+				if (cancelled) return
+				window.setTimeout(start, 4000)
+			})
+		}
+
+		if ('IntersectionObserver' in window) {
+			const observer = new IntersectionObserver(
+				(entries) => {
+					if (entries.some((entry) => entry.isIntersecting)) {
+						observer.disconnect()
+						start()
+					}
+				},
+				{ threshold: 0.4 }
+			)
+			observer.observe(card)
+		} else {
+			start()
+		}
+
+		window.addEventListener('beforeunload', () => {
+			cancelled = true
+		})
+	}
+
+	async function typeLines(output, cursor, lines) {
+		output.textContent = ''
+		output.appendChild(cursor)
+		for (const line of lines) {
+			const lineNode = document.createTextNode('')
+			output.insertBefore(lineNode, cursor)
+			for (const char of line) {
+				lineNode.textContent += char
+				await wait(18 + Math.random() * 22)
+			}
+			output.insertBefore(document.createTextNode('\n'), cursor)
+			await wait(260)
+		}
+	}
+
+	function wait(ms) {
+		return new Promise((resolve) => window.setTimeout(resolve, ms))
+	}
+
 	const catalogue = document.querySelector('[data-course-catalogue]')
 	if (catalogue) {
 		const tabs = [...catalogue.querySelectorAll('[data-course-tab]')]

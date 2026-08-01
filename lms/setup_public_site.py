@@ -7,11 +7,14 @@ from frappe.utils.file_manager import save_file
 
 
 CATEGORY_DEFAULTS = [
+	# display_order controls source order, which — under this page's RTL
+	# layout — determines right-to-left visual order (first item = right).
+	# Required order right-to-left: كورسات، أولى بكالوريا، تانية بكالوريا.
 	{
-		"category_name": "تانية بكالوريا",
-		"slug": "second-baccalaureate",
+		"category_name": "كورسات",
+		"slug": "courses",
 		"display_order": 1,
-		"is_default": 0,
+		"is_default": 1,
 	},
 	{
 		"category_name": "أولى بكالوريا",
@@ -20,10 +23,10 @@ CATEGORY_DEFAULTS = [
 		"is_default": 0,
 	},
 	{
-		"category_name": "كورسات",
-		"slug": "courses",
+		"category_name": "تانية بكالوريا",
+		"slug": "second-baccalaureate",
 		"display_order": 3,
-		"is_default": 1,
+		"is_default": 0,
 	},
 ]
 
@@ -39,8 +42,8 @@ FAQ_DEFAULTS = [
 		"display_order": 2,
 	},
 	{
-		"question": "إيه الجهاز المطلوب للدراسة؟",
-		"answer": "<p>متطلبات الجهاز بتختلف حسب الكورس، وهتلاقي التفاصيل واضحة قبل الاشتراك. أجزاء من المحتوى ممكن تتتابع من الموبايل، بينما التطبيق العملي بيكون أفضل على الكمبيوتر.</p>",
+		"question": "هل أحتاج إلى جهاز كمبيوتر؟",
+		"answer": "<p>المتطلبات بتختلف حسب كل كورس، وهتلاقيها موضحة في صفحة التفاصيل. بعض الكورسات ممكن تتابع أجزاء منها من الموبايل، بينما التطبيق العملي بيكون أفضل على الكمبيوتر. ومختبر البرمجة بيساعدك تطبّق اللي اتعلمته مباشرة من المتصفح.</p>",
 		"display_order": 3,
 	},
 	{

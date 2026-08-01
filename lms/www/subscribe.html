@@ -5,7 +5,7 @@
 {% block head_include %}
 <meta name="description" content="إرسال طلب الاشتراك في {{ offering.title }}" />
 <meta name="csrf-token" content="{{ csrf_token }}" />
-<link rel="stylesheet" href="/assets/lms/landing/landing.css" />
+<link rel="stylesheet" href="/assets/lms/landing/landing.css?v={{ landing_asset_version() }}" />
 <link rel="stylesheet" href="/assets/lms/landing/detail.css" />
 {% endblock %}
 
@@ -82,6 +82,6 @@
 
 	{% include "lms/templates/public_site/footer.html" %}
 </div>
-<script src="/assets/lms/landing/landing.js" defer></script>
+<script src="/assets/lms/landing/landing.js?v={{ landing_asset_version() }}" defer></script>
 <script src="/assets/lms/landing/subscription.js" defer></script>
 {% endblock %}

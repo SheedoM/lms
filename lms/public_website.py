@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from urllib.parse import quote
 
@@ -11,6 +12,28 @@ from frappe.utils import escape_html, flt, now_datetime
 from lms.lms.utils import get_lms_route
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+# Plain files under lms/public/landing/ (landing.css, landing.js, auth.css,
+# auth.js) aren't part of the esbuild bundle pipeline, so — unlike the
+# content-hashed .bundle.*.js/css files — they never get a cache-busting
+# filename. Browsers were caching them indefinitely across deploys, so every
+# template that includes one appends ?v={{ landing_asset_version() }}.
+_landing_asset_version = None
+
+
+def landing_asset_version():
+	global _landing_asset_version
+	if _landing_asset_version is None:
+		landing_dir = os.path.join(frappe.get_app_path("lms"), "public", "landing")
+		try:
+			mtimes = [
+				os.path.getmtime(os.path.join(landing_dir, name))
+				for name in os.listdir(landing_dir)
+			]
+			_landing_asset_version = str(int(max(mtimes))) if mtimes else "1"
+		except OSError:
+			_landing_asset_version = "1"
+	return _landing_asset_version
 
 
 DEFAULT_SETTINGS = frappe._dict(
@@ -28,8 +51,9 @@ DEFAULT_SETTINGS = frappe._dict(
 		"hero_right_text": "تطبيق من أول يوم ونتائج تقدر تشوفها",
 		"hero_left_title": "مشاريع حقيقية",
 		"hero_left_text": "مش كود وخلاص؛ مشاريع تضيفها لخبرتك",
-		"hero_heading": "تعلم البرمجة عمليًا من خلال مشاريع حقيقية وابدأ رحلتك في بناء المستقبل",
+		"hero_heading": "اتعلّم البرمجة عمليًا وابنِ مشاريع حقيقية",
 		"hero_description": "محتوى منظم، تطبيق مستمر، ومشاريع تساعدك تحوّل اللي اتعلمته لحاجة حقيقية.",
+		"hero_terminal_lines": "$ start_learning()\n> Learn\n> Practice\n> Build\n✓ Project ready",
 		"hero_primary_label": "حساب جديد",
 		"hero_secondary_label": "شوف الكورسات",
 		"courses_heading": "الكورسات",
@@ -40,16 +64,17 @@ DEFAULT_SETTINGS = frappe._dict(
 		"coming_soon_button_label": "قريبًا",
 		"lab_heading": "جرب البرمجة",
 		"lab_description": "اكتب الكود وشوف النتيجة مباشرة.",
-		"python_starter_code": "name = 'FaragallahTech'\nprint(f'أهلًا يا {name} 👋')",
-		"javascript_starter_code": "const name = 'FaragallahTech';\nconsole.log(`أهلًا يا ${name} 👋`);",
+		"python_starter_code": '# غيّر الاسم لاسمك وشوف النتيجة\nname = "Shady"\nprint(f"أهلًا يا {name} 👋")',
+		"javascript_starter_code": "// غيّر الاسم لاسمك وشوف النتيجة\nconst name = \"Shady\";\nconsole.log(`أهلًا يا ${name} 👋`);",
 		"about_heading": "عن المدرب",
 		"instructor_name": "شادي فرج الله",
 		"instructor_role": "مدرب برمجة ومطور مناهج",
 		"about_text": "بساعد الطلاب يتعلموا البرمجة بالتطبيق والمشاريع، وبطوّر تجارب تعليمية تجمع بين الشرح الواضح والممارسة العملية.",
 		"gallery_heading": "لقطات من جلسات أونلاين وأوفلاين",
-		"partners_heading": "جهات وبرامج تشرفت بالتعاون معها",
+		"partners_heading": "جهات وشركات تشرفت بالتعاون معها",
 		"faq_heading": "الأسئلة الشائعة",
 		"footer_text": "تعلم البرمجة بشكل عملي من خلال محتوى منظم ومشاريع حقيقية.",
+		"social_heading": "تابعني",
 	}
 )
 
