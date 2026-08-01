@@ -53,7 +53,7 @@ class TestPublicLearningWebsite(UnitTestCase):
 		)
 
 		self.assertEqual(get_default_action_label(free, settings), "ابدأ مجانًا")
-		self.assertTrue(get_primary_action_url(free).startswith("/signup?redirect-to="))
+		self.assertEqual(get_primary_action_url(free), "/enroll/free-course")
 		self.assertEqual(get_default_action_label(paid, settings), "اشترك دلوقتي")
 		self.assertEqual(get_primary_action_url(paid), "/subscribe/paid-course")
 		self.assertEqual(get_default_action_label(coming_soon, settings), "قريبًا")
