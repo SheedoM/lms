@@ -39,7 +39,6 @@
 import { computed, ref } from 'vue'
 import { call } from 'frappe-ui'
 import { sessionStore } from '@/stores/session'
-import { applyStudentLanguage } from '@/translation'
 
 const { user } = sessionStore()
 const switching = ref(false)
@@ -51,6 +50,9 @@ async function switchTo(language) {
 	switching.value = true
 	try {
 		if (user.value) {
+			// Same call the original "Language" field in Edit Profile used
+			// (frappe.client.set_value on User.language), just triggered
+			// from a two-button toggle instead of a full language dropdown.
 			await call('frappe.client.set_value', {
 				doctype: 'User',
 				name: user.value,
@@ -59,7 +61,6 @@ async function switchTo(language) {
 			})
 		}
 	} finally {
-		applyStudentLanguage(language)
 		window.location.reload()
 	}
 }
