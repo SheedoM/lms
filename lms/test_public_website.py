@@ -122,7 +122,9 @@ class TestPublicLearningWebsite(UnitTestCase):
 		self.assertEqual(first["name"], second["name"])
 
 	def test_non_paid_offering_rejects_payment_request(self):
-		offering = self._create_offering("test-free-offering", "Free Enrollment", access_type="Free")
+		offering = self._create_offering(
+			"test-coming-soon-offering", "Coming Soon", access_type="Coming Soon"
+		)
 		with self.assertRaises(frappe.ValidationError):
 			submit_subscription_request(
 				offering.slug,
