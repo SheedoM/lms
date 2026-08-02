@@ -1,4 +1,4 @@
-<article class="ft-course-card">
+<article class="ft-course-card{% if offering.action_disabled %} ft-course-card--coming-soon{% endif %}">
 	<a class="ft-course-cover" href="{{ offering.details_url }}" aria-label="{{ offering.title }}">
 		{% if offering.cover_image %}
 			<img src="{{ offering.cover_image }}" alt="{{ offering.title }}" loading="lazy" />
@@ -8,7 +8,14 @@
 				<strong>{{ offering.title }}</strong>
 			</div>
 		{% endif %}
-		{% if offering.badge %}<span class="ft-course-badge">{{ offering.badge }}</span>{% endif %}
+		{% if offering.action_disabled %}
+			<div class="ft-course-cover-overlay">
+				<span class="ft-course-cover-overlay-badge">{{ offering.action_label }}</span>
+				<strong>الكورس هيفتح قريبًا</strong>
+			</div>
+		{% elif offering.badge %}
+			<span class="ft-course-badge">{{ offering.badge }}</span>
+		{% endif %}
 	</a>
 	<div class="ft-course-card-body">
 		<a class="ft-course-title" href="{{ offering.details_url }}">{{ offering.title }}</a>

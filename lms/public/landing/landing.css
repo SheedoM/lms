@@ -801,6 +801,38 @@ main .container {
 	font-weight: 700;
 }
 
+.ft-course-card--coming-soon .ft-course-cover img {
+	filter: grayscale(0.35) brightness(0.6);
+}
+
+.ft-course-cover-overlay {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	gap: 8px;
+	padding: 20px;
+	text-align: center;
+	background: linear-gradient(180deg, rgba(7, 31, 43, 0.35), rgba(7, 31, 43, 0.75));
+	color: white;
+}
+
+.ft-course-cover-overlay-badge {
+	padding: 6px 16px;
+	border-radius: 100px;
+	background: var(--ft-lime);
+	color: var(--ft-navy);
+	font-size: 0.85rem;
+	font-weight: 800;
+}
+
+.ft-course-cover-overlay strong {
+	font-family: Alexandria, sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
 .ft-course-card-body {
 	padding: 15px;
 }
