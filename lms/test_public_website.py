@@ -119,6 +119,7 @@ class TestPublicLearningWebsite(UnitTestCase):
 			offering.slug,
 			"InstaPay",
 			"01000000000",
+			"01100000000",
 			file_doc.file_url,
 			"Test request",
 		)
@@ -127,6 +128,7 @@ class TestPublicLearningWebsite(UnitTestCase):
 			offering.slug,
 			"InstaPay",
 			"01000000000",
+			"01100000000",
 			file_doc.file_url,
 			"Test request",
 		)
@@ -144,6 +146,7 @@ class TestPublicLearningWebsite(UnitTestCase):
 				offering.slug,
 				"InstaPay",
 				"01000000000",
+				"01100000000",
 				"/private/files/not-used.png",
 			)
 
@@ -286,7 +289,7 @@ class TestLmsAccessAndSignup(UnitTestCase):
 	def test_signup_creates_enabled_website_user_with_only_the_student_role(self):
 		frappe.set_user("Guest")
 		email = f"test-signup-{frappe.generate_hash(length=6)}@example.com"
-		public_signup("Test Signup User", email, "Str0ng!Passw0rd", "Str0ng!Passw0rd")
+		public_signup("Test Signup User", email, "Str0ng!Passw0rd", "Str0ng!Passw0rd", "01012345678")
 		self.created.append(("User", email))
 
 		frappe.set_user("Administrator")
@@ -299,25 +302,25 @@ class TestLmsAccessAndSignup(UnitTestCase):
 	def test_signup_logs_the_new_user_in_immediately(self):
 		frappe.set_user("Guest")
 		email = f"test-autologin-{frappe.generate_hash(length=6)}@example.com"
-		public_signup("Auto Login", email, "Str0ng!Passw0rd", "Str0ng!Passw0rd")
+		public_signup("Auto Login", email, "Str0ng!Passw0rd", "Str0ng!Passw0rd", "01012345678")
 		self.created.append(("User", email))
 		self.assertEqual(frappe.session.user, email)
 
 	def test_signup_rejects_duplicate_email(self):
 		frappe.set_user("Guest")
 		email = f"test-dup-{frappe.generate_hash(length=6)}@example.com"
-		public_signup("First Signup", email, "Str0ng!Passw0rd", "Str0ng!Passw0rd")
+		public_signup("First Signup", email, "Str0ng!Passw0rd", "Str0ng!Passw0rd", "01012345678")
 		self.created.append(("User", email))
 
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.ValidationError):
-			public_signup("Second Signup", email, "Str0ng!Passw0rd", "Str0ng!Passw0rd")
+			public_signup("Second Signup", email, "Str0ng!Passw0rd", "Str0ng!Passw0rd", "01012345678")
 
 	def test_signup_rejects_mismatched_passwords(self):
 		frappe.set_user("Guest")
 		email = f"test-mismatch-{frappe.generate_hash(length=6)}@example.com"
 		with self.assertRaises(frappe.ValidationError):
-			public_signup("Mismatch", email, "Str0ng!Passw0rd", "SomethingElse!1")
+			public_signup("Mismatch", email, "Str0ng!Passw0rd", "SomethingElse!1", "01012345678")
 		self.assertFalse(frappe.db.exists("User", email))
 
 	def test_signup_honors_safe_redirect_to(self):
@@ -328,6 +331,7 @@ class TestLmsAccessAndSignup(UnitTestCase):
 			email,
 			"Str0ng!Passw0rd",
 			"Str0ng!Passw0rd",
+			"01012345678",
 			redirect_to="/subscribe/code-plus-plus",
 		)
 		self.created.append(("User", email))
@@ -341,6 +345,7 @@ class TestLmsAccessAndSignup(UnitTestCase):
 			email,
 			"Str0ng!Passw0rd",
 			"Str0ng!Passw0rd",
+			"01012345678",
 			redirect_to="https://evil.example.com/phish",
 		)
 		self.created.append(("User", email))
