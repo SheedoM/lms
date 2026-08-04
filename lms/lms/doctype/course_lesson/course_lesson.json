@@ -14,6 +14,10 @@
   "column_break_4",
   "chapter",
   "course",
+  "section_break_avail",
+  "available_from",
+  "column_break_avail",
+  "available_till",
   "section_break_11",
   "content",
   "body",
@@ -96,6 +100,27 @@
   {
    "fieldname": "section_break_11",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_avail",
+   "fieldtype": "Section Break",
+   "label": "Content Availability"
+  },
+  {
+   "description": "Leave empty to make the lesson available immediately.",
+   "fieldname": "available_from",
+   "fieldtype": "Datetime",
+   "label": "Available From"
+  },
+  {
+   "fieldname": "column_break_avail",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Leave empty for the lesson to stay available indefinitely.",
+   "fieldname": "available_till",
+   "fieldtype": "Datetime",
+   "label": "Available Till"
   },
   {
    "description": "YouTube Video will appear at the top of the lesson.",

@@ -26,7 +26,11 @@
   "section_break_3",
   "lesson",
   "column_break_5",
-  "course"
+  "course",
+  "section_break_avail",
+  "available_from",
+  "column_break_avail",
+  "available_till"
  ],
  "fields": [
   {
@@ -148,6 +152,27 @@
    "fieldname": "marks_to_cut",
    "fieldtype": "Int",
    "label": "Marks To Cut"
+  },
+  {
+   "fieldname": "section_break_avail",
+   "fieldtype": "Section Break",
+   "label": "Content Availability"
+  },
+  {
+   "description": "Leave empty to make the quiz available immediately.",
+   "fieldname": "available_from",
+   "fieldtype": "Datetime",
+   "label": "Available From"
+  },
+  {
+   "fieldname": "column_break_avail",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Leave empty for the quiz to stay available indefinitely.",
+   "fieldname": "available_till",
+   "fieldtype": "Datetime",
+   "label": "Available Till"
   }
  ],
  "grid_page_length": 50,

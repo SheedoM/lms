@@ -23,6 +23,34 @@
 				</div>
 			</div>
 
+			<div class="flex items-center gap-3">
+				<FormControl
+					v-model="lesson.available_from"
+					:label="__('Available From')"
+					type="datetime"
+					variant="outline"
+					class="w-full"
+					@update:modelValue="markDirty"
+				/>
+				<FormControl
+					v-model="lesson.available_till"
+					:label="__('Available Till')"
+					type="datetime"
+					variant="outline"
+					class="w-full"
+					@update:modelValue="markDirty"
+				/>
+				<Tooltip
+					:text="
+						__(
+							'Leave either empty to skip that bound. Students see this lesson as locked outside the window; instructors always have access.'
+						)
+					"
+				>
+					<span class="lucide-help-circle size-4 shrink-0 text-ink-gray-5" />
+				</Tooltip>
+			</div>
+
 			<textarea
 				ref="titleRef"
 				v-model="lesson.title"
@@ -77,6 +105,7 @@
 import {
 	Badge,
 	Button,
+	FormControl,
 	Switch,
 	call,
 	createResource,
@@ -230,6 +259,8 @@ const lesson = reactive({
 	body: '',
 	instructor_notes: '',
 	content: '',
+	available_from: '',
+	available_till: '',
 })
 
 const lessonHasVideo = computed(() => hasVideoContent(lesson))

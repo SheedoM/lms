@@ -31,37 +31,41 @@
 					<div class="flex items-center justify-center mt-4 gap-x-2">
 						<span class="lucide-lock-keyhole size-4 text-ink-gray-5" />
 						<div class="text-lg-semibold text-ink-gray-7">
-							{{ __('This lesson is locked') }}
+							{{ lockMessage ? lockMessage.title : __('This lesson is locked') }}
 						</div>
 					</div>
 					<div class="mt-1 mb-4 text-ink-gray-7">
 						{{
-							__(
-								'This lesson is not available for preview. Please enroll in the course to access it.'
-							)
+							lockMessage
+								? lockMessage.description
+								: __(
+										'This lesson is not available for preview. Please enroll in the course to access it.'
+									)
 						}}
 					</div>
-					<Button
-						v-if="user.data && !lesson.data.disable_self_learning"
-						@click="enrollStudent()"
-						variant="solid"
-					>
-						{{ __('Start Learning') }}
-					</Button>
-					<Badge
-						theme="blue"
-						size="lg"
-						v-else-if="lesson.data.disable_self_learning"
-						class="mt-2"
-					>
-						{{ __('Contact the Administrator to enroll for this course.') }}
-					</Badge>
-					<Button v-else @click="redirectToLogin()">
-						<template #prefix>
-							<span class="lucide-log-in size-4" />
-						</template>
-						{{ __('Login') }}
-					</Button>
+					<template v-if="!lockMessage">
+						<Button
+							v-if="user.data && !lesson.data.disable_self_learning"
+							@click="enrollStudent()"
+							variant="solid"
+						>
+							{{ __('Start Learning') }}
+						</Button>
+						<Badge
+							theme="blue"
+							size="lg"
+							v-else-if="lesson.data.disable_self_learning"
+							class="mt-2"
+						>
+							{{ __('Contact the Administrator to enroll for this course.') }}
+						</Badge>
+						<Button v-else @click="redirectToLogin()">
+							<template #prefix>
+								<span class="lucide-log-in size-4" />
+							</template>
+							{{ __('Login') }}
+						</Button>
+					</template>
 				</div>
 			</div>
 			<div
@@ -363,6 +367,7 @@ import {
 	nextTick,
 } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import dayjs from '@/utils/dayjs'
 import {
 	getEditorTools,
 	enablePlyr,
@@ -546,6 +551,27 @@ const lesson = createResource({
 		}
 	},
 	auto: true,
+})
+
+const lockMessage = computed(() => {
+	const reason = lesson.data?.lock_reason
+	if (reason === 'not_yet_available') {
+		return {
+			title: __('This lesson is not available yet'),
+			description: __('It will open on {0}.').format(
+				dayjs(lesson.data.available_from).format('DD MMM YYYY, h:mm A')
+			),
+		}
+	}
+	if (reason === 'closed') {
+		return {
+			title: __('This lesson is closed'),
+			description: __('It was available until {0}.').format(
+				dayjs(lesson.data.available_till).format('DD MMM YYYY, h:mm A')
+			),
+		}
+	}
+	return null
 })
 
 const setupLesson = (data) => {

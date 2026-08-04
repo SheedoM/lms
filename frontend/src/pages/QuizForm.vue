@@ -246,6 +246,23 @@
 					variant="outline"
 				/>
 			</div>
+			<div class="space-y-5">
+				<h2 class="text-ink-gray-9 font-semibold">
+					{{ __('Content Availability') }}
+				</h2>
+				<FormControl
+					v-model="quizDetails.doc.available_from"
+					:label="__('Available From')"
+					type="datetime"
+					variant="outline"
+				/>
+				<FormControl
+					v-model="quizDetails.doc.available_till"
+					:label="__('Available Till')"
+					type="datetime"
+					variant="outline"
+				/>
+			</div>
 		</div>
 	</div>
 

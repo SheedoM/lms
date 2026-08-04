@@ -1217,6 +1217,8 @@ def get_lesson(course: str, chapter: int, lesson: int) -> dict:
 			"course",
 			"content",
 			"instructor_content",
+			"available_from",
+			"available_till",
 		],
 		as_dict=1,
 	)
@@ -1244,14 +1246,20 @@ def get_lesson(course: str, chapter: int, lesson: int) -> dict:
 
 	# Resolve instructor status (governs instructor-only field visibility) and overall
 	# access in one pass, so the instructor check isn't computed twice.
-	is_instructor, can_access = resolve_lesson_access(lesson_name)
+	is_instructor, can_access, lock_reason = resolve_lesson_access(lesson_name)
 	if not can_access:
-		return {
+		response = {
 			"no_preview": 1,
 			"title": lesson_details.title,
 			"course_title": course_info.title,
 			"disable_self_learning": course_info.disable_self_learning,
+			"lock_reason": lock_reason,
 		}
+		if lock_reason == "not_yet_available":
+			response["available_from"] = lesson_details.available_from
+		elif lock_reason == "closed":
+			response["available_till"] = lesson_details.available_till
+		return response
 
 	# instructor_content / instructor_notes are instructor-only (permissions.INSTRUCTOR_FIELDS).
 	# Never leak them to students or preview guests, who also pass the gate above.
@@ -1456,15 +1464,28 @@ def get_quiz_with_questions(quiz: str) -> dict:
 		QUESTION_EXPLANATION_FIELDS,
 		QUESTION_OPTION_FIELDS,
 	)
-	from lms.lms.permissions import can_access_quiz
+	from lms.lms.permissions import resolve_quiz_access
 
 	if not isinstance(quiz, str):
 		frappe.throw(_("Quiz must be a string."))
 
-	if not can_access_quiz(quiz):
+	is_privileged, can_access, lock_reason = resolve_quiz_access(quiz)
+	if not can_access:
 		frappe.logger("lms.security").warning(
-			"Quiz access denied: user=%s quiz=%s", frappe.session.user, quiz
+			"Quiz access denied: user=%s quiz=%s reason=%s", frappe.session.user, quiz, lock_reason
 		)
+		if lock_reason == "not_yet_available":
+			available_from = get_datetime(frappe.db.get_value("LMS Quiz", quiz, "available_from"))
+			frappe.throw(
+				_("This quiz will open on {0}.").format(available_from.strftime("%d %b %Y, %I:%M %p")),
+				frappe.PermissionError,
+			)
+		if lock_reason == "closed":
+			available_till = get_datetime(frappe.db.get_value("LMS Quiz", quiz, "available_till"))
+			frappe.throw(
+				_("This quiz closed on {0}.").format(available_till.strftime("%d %b %Y, %I:%M %p")),
+				frappe.PermissionError,
+			)
 		frappe.throw(_("You are not authorized to view this quiz."), frappe.PermissionError)
 
 	quiz_doc = frappe.get_doc("LMS Quiz", quiz).as_dict()
@@ -2111,6 +2132,8 @@ def get_lesson_creation_details(course: str, chapter: int, lesson: int) -> dict:
 				"instructor_content",
 				"youtube",
 				"quiz_id",
+				"available_from",
+				"available_till",
 			],
 			as_dict=1,
 		)
